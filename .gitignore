@@ -1,27 +1,43 @@
 # Dependencies
 node_modules/
-client/node_modules/
-server/node_modules/
+package-lock.json
+yarn.lock
+
 # Production
-client/build/
+build/
+dist/
+.next/
+out/
 
-# Database
-server/*.db
-server/*.sqlite
-
-# Misc
-.DS_Store
+# Environment variables
+.env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+.env.*.local
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.cache/
+temp/
+tmp/
+
+# OS
+.DS_Store
+Thumbs.db
