@@ -15,7 +15,8 @@ import {
   Empty,
   Tooltip,
   Popconfirm,
-  Spin
+  Spin,
+  FloatButton
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -202,6 +203,8 @@ const MethodsPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <FloatButton.BackTop visibilityHeight={200} />
     </div>
   );
 };
