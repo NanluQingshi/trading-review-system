@@ -1,70 +1,57 @@
-.App {
-  text-align: center;
+/* 全局样式优化 */
+body {
+  background-color: #f5f7fa;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
 }
 
-.site-layout-content {
-  min-height: 280px;
-  padding: 24px;
-  background: #fff;
-}
-
+/* 侧边栏 Logo 区域 */
 .logo {
-  float: left;
-  width: 120px;
-  height: 31px;
-  margin: 16px 24px 16px 0;
+  height: 32px;
+  margin: 16px;
   background: rgba(255, 255, 255, 0.3);
 }
 
-.ant-row-rtl .logo {
-  float: right;
-  margin: 16px 0 16px 24px;
-}
-
-/* 自定义样式 */
-.page-header {
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  text-align: center;
-  padding: 20px;
-}
-
-.stat-value {
-  font-size: 30px;
-  font-weight: bold;
-  margin: 10px 0;
-}
-
-.stat-label {
-  color: #8c8c8c;
-  font-size: 14px;
-}
-
+/* 盈亏颜色 */
 .profit-positive {
   color: #52c41a;
+  font-weight: bold;
 }
 
 .profit-negative {
-  color: #ff4d4f;
+  color: #f5222d;
+  font-weight: bold;
 }
 
 .profit-neutral {
   color: #8c8c8c;
 }
 
-.method-card {
-  margin-bottom: 16px;
-  cursor: pointer;
+/* 卡片悬停效果 */
+.ant-card-hoverable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
   transition: all 0.3s;
 }
 
-.method-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* 表格行悬停效果 */
+.ant-table-tbody > tr:hover > td {
+  background-color: #f0f7ff !important;
 }
 
-.trade-tag {
-  margin-right: 8px;
-  margin-bottom: 8px;
+/* 页面标题区域 */
+.page-header {
+  margin-bottom: 24px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    display: none;
+  }
+  .ant-layout {
+    margin-left: 0 !important;
+  }
 }

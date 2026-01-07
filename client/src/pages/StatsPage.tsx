@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, message } from 'antd';
+import { Card, Row, Col, Statistic, Table, message, Spin, Empty } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, TrophyOutlined, DollarOutlined } from '@ant-design/icons';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Stats } from '../types';
@@ -26,8 +26,16 @@ const StatsPage: React.FC = () => {
     }
   };
 
+  if (loading && !stats) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <Spin size="large" tip="加载统计数据中..." />
+      </div>
+    );
+  }
+
   if (!stats) {
-    return <div>加载中...</div>;
+    return <Empty description="暂无统计数据" />;
   }
 
   const { overview, symbolStats, methodStats, profitCurve } = stats;

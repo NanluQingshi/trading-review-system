@@ -1,17 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, InputNumber, DatePicker, message, Tag, Space, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { 
+  Table, 
+  Card, 
+  Button, 
+  Space, 
+  Tag, 
+  Modal, 
+  Form, 
+  Input, 
+  Select, 
+  DatePicker, 
+  InputNumber, 
+  message, 
+  Typography,
+  Divider,
+  Row,
+  Col,
+  Tooltip
+} from 'antd';
+import { 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  SearchOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Trade, Method } from '../types';
 import { tradesApi, methodsApi } from '../services/api';
-const { TextArea } = Input;
+
+const { Title, Text } = Typography;
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const TradesPage: React.FC = () => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [methods, setMethods] = useState<Method[]>([]);
   const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [form] = Form.useForm();
 
@@ -20,10 +46,10 @@ const TradesPage: React.FC = () => {
     fetchMethods();
   }, []);
 
-  const fetchTrades = async () => {
+  const fetchTrades = async (params = {}) => {
     setLoading(true);
     try {
-      const response = await tradesApi.getAll();
+      const response = await tradesApi.getTrades(params);
       setTrades(response.data.data);
     } catch (error) {
       message.error('获取交易记录失败');
@@ -34,17 +60,17 @@ const TradesPage: React.FC = () => {
 
   const fetchMethods = async () => {
     try {
-      const response = await methodsApi.getAll();
+      const response = await methodsApi.getMethods();
       setMethods(response.data.data);
     } catch (error) {
-      message.error('获取方法列表失败');
+      message.error('获取方法库失败');
     }
   };
 
   const handleAdd = () => {
     setEditingTrade(null);
     form.resetFields();
-    setModalVisible(true);
+    setIsModalVisible(true);
   };
 
   const handleEdit = (trade: Trade) => {
@@ -53,283 +79,273 @@ const TradesPage: React.FC = () => {
       ...trade,
       entryTime: dayjs(trade.entryTime),
       exitTime: dayjs(trade.exitTime),
-      tags: trade.tags.join(','),
     });
-    setModalVisible(true);
+    setIsModalVisible(true);
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await tradesApi.delete(id);
-      message.success('删除成功');
-      fetchTrades();
-    } catch (error) {
-      message.error('删除失败');
-    }
+    Modal.confirm({
+      title: '确认删除',
+      content: '确定要删除这条交易记录吗？',
+      okText: '确定',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await tradesApi.deleteTrade(id);
+          message.success('删除成功');
+          fetchTrades();
+        } catch (error) {
+          message.error('删除失败');
+        }
+      },
+    });
   };
 
-  const handleSubmit = async () => {
+  const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      const method = methods.find(m => m.id === values.methodId);
-      
-      const tradeData = {
+      const formattedValues = {
         ...values,
         entryTime: values.entryTime.format('YYYY-MM-DD HH:mm:ss'),
         exitTime: values.exitTime.format('YYYY-MM-DD HH:mm:ss'),
-        methodName: method?.name || '',
-        tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
       };
 
       if (editingTrade) {
-        await tradesApi.update(editingTrade.id, tradeData);
+        await tradesApi.updateTrade(editingTrade.id, formattedValues);
         message.success('更新成功');
       } else {
-        await tradesApi.create(tradeData);
-        message.success('创建成功---');
+        await tradesApi.createTrade(formattedValues);
+        message.success('创建成功');
       }
-      setModalVisible(false);
+      setIsModalVisible(false);
       fetchTrades();
     } catch (error) {
-      message.error('操作失败');
+      console.error('Validate Failed:', error);
     }
   };
 
   const columns = [
     {
-      title: '货币对',
+      title: '交易品种',
       dataIndex: 'symbol',
       key: 'symbol',
-      width: 100,
+      render: (text: string) => <Text strong>{text}</Text>,
     },
     {
       title: '方向',
       dataIndex: 'direction',
       key: 'direction',
-      width: 80,
       render: (direction: string) => (
-        <Tag color={direction === 'long' ? 'green' : 'red'}>
+        <Tag color={direction === 'long' ? 'blue' : 'volcano'}>
           {direction === 'long' ? '做多' : '做空'}
         </Tag>
       ),
     },
     {
-      title: '入场价',
-      dataIndex: 'entryPrice',
-      key: 'entryPrice',
-      width: 100,
-    },
-    {
-      title: '出场价',
-      dataIndex: 'exitPrice',
-      key: 'exitPrice',
-      width: 100,
+      title: '入场/出场价格',
+      key: 'prices',
+      render: (_: any, record: Trade) => (
+        <Space direction="vertical" size={0}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>入: {record.entryPrice}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>出: {record.exitPrice}</Text>
+        </Space>
+      ),
     },
     {
       title: '盈亏',
       dataIndex: 'profit',
       key: 'profit',
-      width: 100,
+      sorter: (a: Trade, b: Trade) => a.profit - b.profit,
       render: (profit: number) => (
-        <span className={profit > 0 ? 'profit-positive' : profit < 0 ? 'profit-negative' : 'profit-neutral'}>
-          {profit > 0 ? '+' : ''}{profit}
-        </span>
+        <Text strong style={{ color: profit > 0 ? '#52c41a' : profit < 0 ? '#f5222d' : '#8c8c8c' }}>
+          {profit > 0 ? `+${profit}` : profit}
+        </Text>
       ),
+    },
+    {
+      title: '盈亏比',
+      dataIndex: 'riskRewardRatio',
+      key: 'riskRewardRatio',
+      render: (ratio: number) => <Tag color="cyan">{ratio}R</Tag>,
+    },
+    {
+      title: '交易方法',
+      dataIndex: 'methodName',
+      key: 'methodName',
+      render: (name: string) => <Tag color="geekblue">{name}</Tag>,
     },
     {
       title: '结果',
       dataIndex: 'result',
       key: 'result',
-      width: 80,
+      filters: [
+        { text: '盈利', value: 'win' },
+        { text: '亏损', value: 'loss' },
+        { text: '保本', value: 'breakeven' },
+      ],
+      onFilter: (value: any, record: Trade) => record.result === value,
       render: (result: string) => {
-        const colors = { win: 'success', loss: 'error', breakeven: 'default' };
-        const labels = { win: '盈利', loss: '亏损', breakeven: '保本' };
-        return <Tag color={colors[result as keyof typeof colors]}>{labels[result as keyof typeof labels]}</Tag>;
+        let color = 'default';
+        let text = '保本';
+        if (result === 'win') { color = 'success'; text = '盈利'; }
+        if (result === 'loss') { color = 'error'; text = '亏损'; }
+        return <Tag color={color}>{text}</Tag>;
       },
-    },
-    {
-      title: '使用方法',
-      dataIndex: 'methodName',
-      key: 'methodName',
-      width: 120,
-    },
-    {
-      title: '入场时间',
-      dataIndex: 'entryTime',
-      key: 'entryTime',
-      width: 160,
-    },
-    {
-      title: '标签',
-      dataIndex: 'tags',
-      key: 'tags',
-      width: 150,
-      render: (tags: string[]) => (
-        <>
-          {tags.map(tag => (
-            <Tag key={tag} className="trade-tag">{tag}</Tag>
-          ))}
-        </>
-      ),
     },
     {
       title: '操作',
       key: 'action',
-      width: 120,
-      fixed: 'right' as const,
       render: (_: any, record: Trade) => (
-        <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
-          <Popconfirm
-            title="确定要删除这条记录吗？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
+        <Space size="middle">
+          <Tooltip title="编辑">
+            <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          </Tooltip>
+          <Tooltip title="删除">
+            <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+          </Tooltip>
         </Space>
       ),
     },
   ];
 
   return (
-    <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>交易复盘</h1>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          添加交易记录
-        </Button>
-      </div>
+    <div className="trades-page">
+      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+        <Col>
+          <Title level={3} style={{ margin: 0 }}>交易复盘</Title>
+          <Text type="secondary">记录并分析您的每一笔交易，不断优化交易系统</Text>
+        </Col>
+        <Col>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} size="large">
+            新增交易
+          </Button>
+        </Col>
+      </Row>
 
-      <Table
-        columns={columns}
-        dataSource={trades}
-        rowKey="id"
-        loading={loading}
-        scroll={{ x: 1300 }}
-        pagination={{ pageSize: 10 }}
-      />
-
-      <Modal
-        title={editingTrade ? '编辑交易记录' : '添加交易记录'}
-        open={modalVisible}
-        onOk={handleSubmit}
-        onCancel={() => setModalVisible(false)}
-        width={700}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="symbol"
-            label="货币对"
-            rules={[{ required: true, message: '请输入货币对' }]}
-          >
-            <Input placeholder="例如：EUR/USD" />
+      <Card variant="borderless" style={{ marginBottom: 24, boxShadow: '0 1px 2px 0 rgba(0,0,0,0.03)' }}>
+        <Form layout="inline" onFinish={(values) => fetchTrades(values)}>
+          <Form.Item name="symbol">
+            <Input placeholder="搜索品种" prefix={<SearchOutlined />} allowClear />
           </Form.Item>
-
-          <Form.Item
-            name="direction"
-            label="交易方向"
-            rules={[{ required: true, message: '请选择交易方向' }]}
-          >
-            <Select placeholder="选择方向">
-              <Option value="long">做多</Option>
-              <Option value="short">做空</Option>
+          <Form.Item name="methodId">
+            <Select placeholder="选择方法" style={{ width: 150 }} allowClear>
+              {methods.map(m => <Option key={m.id} value={m.id}>{m.name}</Option>)}
             </Select>
           </Form.Item>
-
-          <Form.Item
-            name="entryPrice"
-            label="入场价格"
-            rules={[{ required: true, message: '请输入入场价格' }]}
-          >
-            <InputNumber style={{ width: '100%' }} step={0.0001} />
-          </Form.Item>
-
-          <Form.Item
-            name="exitPrice"
-            label="出场价格"
-            rules={[{ required: true, message: '请输入出场价格' }]}
-          >
-            <InputNumber style={{ width: '100%' }} step={0.0001} />
-          </Form.Item>
-
-          <Form.Item
-            name="lots"
-            label="手数"
-            rules={[{ required: true, message: '请输入手数' }]}
-          >
-            <InputNumber style={{ width: '100%' }} step={0.01} min={0.01} />
-          </Form.Item>
-
-          <Form.Item
-            name="entryTime"
-            label="入场时间"
-            rules={[{ required: true, message: '请选择入场时间' }]}
-          >
-            <DatePicker showTime style={{ width: '100%' }} format="YYYY-MM-DD HH:mm:ss" />
-          </Form.Item>
-
-          <Form.Item
-            name="exitTime"
-            label="出场时间"
-            rules={[{ required: true, message: '请选择出场时间' }]}
-          >
-            <DatePicker showTime style={{ width: '100%' }} format="YYYY-MM-DD HH:mm:ss" />
-          </Form.Item>
-
-          <Form.Item
-            name="methodId"
-            label="使用方法"
-            rules={[{ required: true, message: '请选择使用的方法' }]}
-          >
-            <Select placeholder="选择方法">
-              {methods.map(method => (
-                <Option key={method.id} value={method.id}>{method.name}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="result"
-            label="交易结果"
-            rules={[{ required: true, message: '请选择交易结果' }]}
-          >
-            <Select placeholder="选择结果">
+          <Form.Item name="result">
+            <Select placeholder="交易结果" style={{ width: 120 }} allowClear>
               <Option value="win">盈利</Option>
               <Option value="loss">亏损</Option>
               <Option value="breakeven">保本</Option>
             </Select>
           </Form.Item>
-
-          <Form.Item
-            name="riskRewardRatio"
-            label="风险回报比"
-            rules={[{ required: true, message: '请输入风险回报比' }]}
-          >
-            <InputNumber style={{ width: '100%' }} step={0.1} min={0} />
+          <Form.Item>
+            <Button type="primary" htmlType="submit">筛选</Button>
           </Form.Item>
+        </Form>
+      </Card>
 
-          <Form.Item
-            name="tags"
-            label="标签"
-          >
-            <Input placeholder="多个标签用逗号分隔，例如：趋势,突破" />
+      <Table 
+        columns={columns} 
+        dataSource={trades} 
+        rowKey="id" 
+        loading={loading}
+        pagination={{ pageSize: 10 }}
+        expandable={{
+          expandedRowRender: record => (
+            <div style={{ padding: '8px 24px' }}>
+              <Divider plain style={{ textAlign: 'left' }}><Text type="secondary">交易笔记</Text></Divider>
+              <p>{record.notes || '暂无笔记'}</p>
+              <Divider plain style={{ textAlign: 'left' }}><Text type="secondary">标签</Text></Divider>
+              <Space wrap>
+                {record.tags.map(tag => <Tag key={tag}>{tag}</Tag>)}
+              </Space>
+            </div>
+          ),
+        }}
+      />
+
+      <Modal
+        title={editingTrade ? '编辑交易记录' : '新增交易记录'}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+        width={800}
+        okText="保存"
+        cancelText="取消"
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="symbol" label="交易品种" rules={[{ required: true }]}>
+                <Input placeholder="例如: EUR/USD" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="direction" label="交易方向" rules={[{ required: true }]}>
+                <Select>
+                  <Option value="long">做多</Option>
+                  <Option value="short">做空</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="entryPrice" label="入场价格" rules={[{ required: true }]}>
+                <InputNumber style={{ width: '100%' }} step={0.0001} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="exitPrice" label="出场价格" rules={[{ required: true }]}>
+                <InputNumber style={{ width: '100%' }} step={0.0001} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="entryTime" label="入场时间" rules={[{ required: true }]}>
+                <DatePicker showTime style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="exitTime" label="出场时间" rules={[{ required: true }]}>
+                <DatePicker showTime style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="lots" label="手数" rules={[{ required: true }]}>
+                <InputNumber style={{ width: '100%' }} step={0.01} min={0.01} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="riskRewardRatio" label="盈亏比 (R)" rules={[{ required: true }]}>
+                <InputNumber style={{ width: '100%' }} step={0.1} min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="result" label="交易结果" rules={[{ required: true }]}>
+                <Select>
+                  <Option value="win">盈利</Option>
+                  <Option value="loss">亏损</Option>
+                  <Option value="breakeven">保本</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="methodId" label="交易方法" rules={[{ required: true }]}>
+            <Select>
+              {methods.map(m => <Option key={m.id} value={m.id}>{m.name}</Option>)}
+            </Select>
           </Form.Item>
-
-          <Form.Item
-            name="notes"
-            label="交易笔记"
-          >
-            <TextArea rows={4} placeholder="记录交易心得和反思" />
+          <Form.Item name="notes" label="交易笔记">
+            <Input.TextArea rows={4} placeholder="记录您的入场逻辑、心理状态等..." />
+          </Form.Item>
+          <Form.Item name="tags" label="标签 (逗号分隔)">
+            <Select mode="tags" style={{ width: '100%' }} placeholder="输入标签并回车" />
           </Form.Item>
         </Form>
       </Modal>

@@ -1,14 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Modal, Form, Input, message, Row, Col, Tag, Popconfirm, Statistic } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { 
+  Card, 
+  Button, 
+  Row, 
+  Col, 
+  Typography, 
+  Modal, 
+  Form, 
+  Input, 
+  message, 
+  Space, 
+  Tag, 
+  Statistic,
+  Empty,
+  Tooltip,
+  Popconfirm,
+  Spin
+} from 'antd';
+import { 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  BookOutlined,
+  ThunderboltOutlined,
+  PercentageOutlined
+} from '@ant-design/icons';
 import { Method } from '../types';
 import { methodsApi } from '../services/api';
-const { TextArea } = Input;
+
+const { Title, Text, Paragraph } = Typography;
 
 const MethodsPage: React.FC = () => {
   const [methods, setMethods] = useState<Method[]>([]);
   const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingMethod, setEditingMethod] = useState<Method | null>(null);
   const [form] = Form.useForm();
 
@@ -19,10 +44,10 @@ const MethodsPage: React.FC = () => {
   const fetchMethods = async () => {
     setLoading(true);
     try {
-      const response = await methodsApi.getAll();
+      const response = await methodsApi.getMethods();
       setMethods(response.data.data);
     } catch (error) {
-      message.error('获取方法列表失败');
+      message.error('获取方法库失败');
     } finally {
       setLoading(false);
     }
@@ -31,18 +56,18 @@ const MethodsPage: React.FC = () => {
   const handleAdd = () => {
     setEditingMethod(null);
     form.resetFields();
-    setModalVisible(true);
+    setIsModalVisible(true);
   };
 
   const handleEdit = (method: Method) => {
     setEditingMethod(method);
     form.setFieldsValue(method);
-    setModalVisible(true);
+    setIsModalVisible(true);
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await methodsApi.delete(id);
+      await methodsApi.deleteMethod(id);
       message.success('删除成功');
       fetchMethods();
     } catch (error) {
@@ -50,152 +75,130 @@ const MethodsPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
       if (editingMethod) {
-        await methodsApi.update(editingMethod.id, values);
+        await methodsApi.updateMethod(editingMethod.id, values);
         message.success('更新成功');
       } else {
-        await methodsApi.create(values);
+        await methodsApi.createMethod(values);
         message.success('创建成功');
       }
-      setModalVisible(false);
+      setIsModalVisible(false);
       fetchMethods();
     } catch (error) {
-      message.error('操作失败');
+      console.error('Validate Failed:', error);
     }
   };
 
-  const getWinRateColor = (winRate: number) => {
-    if (winRate >= 0.7) return '#52c41a'; // 绿色
-    if (winRate >= 0.5) return '#faad14'; // 橙色
-    return '#f5222d'; // 红色
-  };
-
-  const getPnlColor = (pnl: number) => {
-    if (pnl > 0) return '#52c41a'; // 绿色
-    if (pnl < 0) return '#f5222d'; // 红色
-    return '#8c8c8c'; // 灰色
-  };
-
   return (
-    <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>交易方法库</h1>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          添加新方法
-        </Button>
-      </div>
-
-      <Row gutter={[16, 16]}>
-        {methods.map((method) => (
-          <Col xs={24} sm={12} lg={8} key={method.id}>
-            <Card
-              className="method-card"
-              title={
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{method.name}</div>
-                    <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: 4 }}>代码: {method.code}</div>
-                  </div>
-                  {method.is_default && <Tag color="blue">默认</Tag>}
-                </div>
-              }
-              extra={
-                <div>
-                  <Button
-                    type="text"
-                    icon={<EditOutlined />}
-                    onClick={() => handleEdit(method)}
-                  />
-                  <Popconfirm
-                    title="确定要删除这个方法吗？"
-                    onConfirm={() => handleDelete(method.id)}
-                    okText="确定"
-                    cancelText="取消"
-                  >
-                    <Button type="text" danger icon={<DeleteOutlined />} />
-                  </Popconfirm>
-                </div>
-              }
-            >
-              <p style={{ color: '#8c8c8c', minHeight: 40, marginBottom: 16 }}>{method.description}</p>
-              
-              <Row gutter={16} style={{ marginTop: 16 }}>
-                <Col span={12}>
-                  <Statistic
-                    title="胜率"
-                    value={(method.win_rate ?? 0) * 100}
-                    precision={2}
-                    suffix="%"
-                    valueStyle={{ color: getWinRateColor(method.win_rate ?? 0) }}
-                  />
-                </Col>
-                <Col span={12}>
-                  <Statistic
-                    title="总盈亏"
-                    value={method.total_pnl ?? 0}
-                    precision={2}
-                    valueStyle={{ color: getPnlColor(method.total_pnl ?? 0) }}
-                  />
-                </Col>
-              </Row>
-
-              <Row gutter={16} style={{ marginTop: 16 }}>
-                <Col span={24}>
-                  <Statistic
-                    title="使用次数"
-                    value={method.usage_count}
-                  />
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-        ))}
+    <div className="methods-page">
+      <Row justify="space-between" align="middle" style={{ marginBottom: 32 }}>
+        <Col>
+          <Title level={3} style={{ margin: 0 }}>Method 库</Title>
+          <Text type="secondary">定义并管理您的交易系统，追踪每种策略的实战表现</Text>
+        </Col>
+        <Col>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} size="large">
+            新增方法
+          </Button>
+        </Col>
       </Row>
 
-      <Modal
-        title={editingMethod ? '编辑方法' : '添加新方法'}
-        open={modalVisible}
-        onOk={handleSubmit}
-        onCancel={() => setModalVisible(false)}
-        width={600}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="code"
-            label="方法代码"
-            rules={[{ required: true, message: '请输入方法代码' }]}
-          >
-            <Input placeholder="例如：1CBO" />
-          </Form.Item>
+      <Spin spinning={loading} tip="加载方法库中...">
+        <div style={{ minHeight: '400px' }}>
+          {methods.length === 0 && !loading ? (
+            <Empty description="暂无交易方法，点击右上角新增" style={{ marginTop: 100 }} />
+          ) : (
+            <Row gutter={[24, 24]}>
+              {methods.map((method) => (
+                <Col xs={24} sm={12} lg={8} key={method.id}>
+                  <Card 
+                    hoverable
+                    actions={[
+                      <Tooltip title="编辑"><EditOutlined key="edit" onClick={() => handleEdit(method)} /></Tooltip>,
+                      <Popconfirm title="确定删除吗？" onConfirm={() => handleDelete(method.id)}>
+                        <Tooltip title="删除"><DeleteOutlined key="delete" style={{ color: '#ff4d4f' }} /></Tooltip>
+                      </Popconfirm>
+                    ]}
+                    style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                    styles={{ body: { flex: 1 } }}
+                  >
+                    <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Space direction="vertical" size={0}>
+                        <Tag color="blue" style={{ marginBottom: 8 }}>{method.code}</Tag>
+                        <Title level={4} style={{ margin: 0 }}>{method.name}</Title>
+                      </Space>
+                      <BookOutlined style={{ fontSize: 24, color: '#bfbfbf' }} />
+                    </div>
+                    
+                    <Paragraph ellipsis={{ rows: 3 }} type="secondary" style={{ height: 66 }}>
+                      {method.description || '暂无描述'}
+                    </Paragraph>
 
-          <Form.Item
-            name="name"
-            label="方法名称"
+                    <div style={{ 
+                      background: '#fafafa', 
+                      padding: '12px', 
+                      borderRadius: '8px',
+                      marginTop: 'auto'
+                    }}>
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <Statistic 
+                            title="使用次数" 
+                            value={method.usage_count} 
+                            valueStyle={{ fontSize: 18 }}
+                            prefix={<ThunderboltOutlined style={{ fontSize: 14 }} />}
+                          />
+                        </Col>
+                        <Col span={12}>
+                          <Statistic 
+                            title="胜率" 
+                            value={method.win_rate * 100} 
+                            precision={1}
+                            suffix="%"
+                            valueStyle={{ fontSize: 18, color: method.win_rate >= 0.5 ? '#52c41a' : '#faad14' }}
+                            prefix={<PercentageOutlined style={{ fontSize: 14 }} />}
+                          />
+                        </Col>
+                      </Row>
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
+        </div>
+      </Spin>
+
+      <Modal
+        title={editingMethod ? '编辑交易方法' : '新增交易方法'}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+        okText="保存"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
+          <Form.Item 
+            name="code" 
+            label="方法代码" 
+            rules={[{ required: true, message: '请输入方法代码' }]}
+            tooltip="简短的标识符，如: BO, MTR"
+          >
+            <Input placeholder="例如: BO" />
+          </Form.Item>
+          <Form.Item 
+            name="name" 
+            label="方法名称" 
             rules={[{ required: true, message: '请输入方法名称' }]}
           >
-            <Input placeholder="例如：First Channel Breakout" />
+            <Input placeholder="例如: 突破交易法" />
           </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="描述"
-            rules={[{ required: true, message: '请输入描述' }]}
-          >
-            <TextArea
-              rows={3}
-              placeholder="详细描述这个交易方法"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="is_default"
-            label="是否为默认方法"
-            valuePropName="checked"
-          >
-            <input type="checkbox" />
+          <Form.Item name="description" label="详细描述">
+            <Input.TextArea rows={4} placeholder="描述该方法的入场条件、止损逻辑、止盈目标等..." />
           </Form.Item>
         </Form>
       </Modal>
