@@ -1,11 +1,14 @@
 # Dependencies
 node_modules/
-package-lock.json
-yarn.lock
+**/node_modules/
+# package-lock.json  <-- 建议取消忽略，以便团队协作版本一致
+# yarn.lock
 
 # Production
 build/
 dist/
+**/build/
+**/dist/
 .next/
 out/
 

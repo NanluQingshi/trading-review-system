@@ -1,0 +1,70 @@
+.App {
+  text-align: center;
+}
+
+.site-layout-content {
+  min-height: 280px;
+  padding: 24px;
+  background: #fff;
+}
+
+.logo {
+  float: left;
+  width: 120px;
+  height: 31px;
+  margin: 16px 24px 16px 0;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.ant-row-rtl .logo {
+  float: right;
+  margin: 16px 0 16px 24px;
+}
+
+/* 自定义样式 */
+.page-header {
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 20px;
+}
+
+.stat-value {
+  font-size: 30px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.stat-label {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.profit-positive {
+  color: #52c41a;
+}
+
+.profit-negative {
+  color: #ff4d4f;
+}
+
+.profit-neutral {
+  color: #8c8c8c;
+}
+
+.method-card {
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.method-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.trade-tag {
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
