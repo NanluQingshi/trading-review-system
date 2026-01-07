@@ -1,140 +1,144 @@
 const express = require('express');
 const router = express.Router();
-const { trades, methods } = require('../data/mockData');
+const pool = require('../db');
+
 // 获取统计数据
-router.get('/', (req, res) => {
-  const { startDate, endDate } = req.query;
-  
-  let filteredTrades = [...trades];
-  
-  // 按日期范围筛选
-  if (startDate) {
-    filteredTrades = filteredTrades.filter(t => t.entryTime >= startDate);
-  }
-  if (endDate) {
-    filteredTrades = filteredTrades.filter(t => t.entryTime <= endDate);
-  }
-  
-  // 基础统计
-  const totalTrades = filteredTrades.length;
-  const winTrades = filteredTrades.filter(t => t.result === 'win').length;
-  const lossTrades = filteredTrades.filter(t => t.result === 'loss').length;
-  const breakevenTrades = filteredTrades.filter(t => t.result === 'breakeven').length;
-  
-  const winRate = totalTrades > 0 ? (winTrades / totalTrades * 100).toFixed(2) : 0;
-  
-  const totalProfit = filteredTrades.reduce((sum, t) => sum + t.profit, 0);
-  const avgProfit = totalTrades > 0 ? (totalProfit / totalTrades).toFixed(2) : 0;
-  
-  const winningProfit = filteredTrades
-    .filter(t => t.result === 'win')
-    .reduce((sum, t) => sum + t.profit, 0);
-  const losingProfit = Math.abs(filteredTrades
-    .filter(t => t.result === 'loss')
-    .reduce((sum, t) => sum + t.profit, 0));
-  
-  const avgWin = winTrades > 0 ? (winningProfit / winTrades).toFixed(2) : 0;
-  const avgLoss = lossTrades > 0 ? (losingProfit / lossTrades).toFixed(2) : 0;
-  const profitFactor = losingProfit > 0 ? (winningProfit / losingProfit).toFixed(2) : 0;
-  
-  // 按货币对统计
-  const symbolStats = {};
-  filteredTrades.forEach(trade => {
-    if (!symbolStats[trade.symbol]) {
-      symbolStats[trade.symbol] = {
-        symbol: trade.symbol,
-        count: 0,
-        wins: 0,
-        profit: 0
-      };
+router.get('/', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    let whereClause = 'WHERE 1=1';
+    const params = [];
+
+    if (startDate) {
+      whereClause += ' AND entryTime >= ?';
+      params.push(startDate);
     }
-    symbolStats[trade.symbol].count++;
-    if (trade.result === 'win') symbolStats[trade.symbol].wins++;
-    symbolStats[trade.symbol].profit += trade.profit;
-  });
-  
-  const symbolStatsArray = Object.values(symbolStats).map(s => ({
-    ...s,
-    winRate: ((s.wins / s.count) * 100).toFixed(2)
-  }));
-  
-  // 按方法统计
-  const methodStats = {};
-  filteredTrades.forEach(trade => {
-    if (!methodStats[trade.methodId]) {
-      methodStats[trade.methodId] = {
-        methodId: trade.methodId,
-        methodName: trade.methodName,
-        count: 0,
-        wins: 0,
-        profit: 0
-      };
+    if (endDate) {
+      whereClause += ' AND entryTime <= ?';
+      params.push(endDate);
     }
-    methodStats[trade.methodId].count++;
-    if (trade.result === 'win') methodStats[trade.methodId].wins++;
-    methodStats[trade.methodId].profit += trade.profit;
-  });
-  
-  const methodStatsArray = Object.values(methodStats).map(m => ({
-    ...m,
-    winRate: ((m.wins / m.count) * 100).toFixed(2)
-  }));
-  
-  // 每日盈亏曲线
-  const dailyProfits = {};
-  filteredTrades.forEach(trade => {
-    const date = trade.entryTime.split(' ')[0];
-    if (!dailyProfits[date]) {
-      dailyProfits[date] = 0;
-    }
-    dailyProfits[date] += trade.profit;
-  });
-  
-  let cumulativeProfit = 0;
-  const profitCurve = Object.keys(dailyProfits)
-    .sort()
-    .map(date => {
-      cumulativeProfit += dailyProfits[date];
+
+    // 1. 基础统计
+    const [overviewRows] = await pool.query(`
+      SELECT 
+        COUNT(*) as totalTrades,
+        SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) as winTrades,
+        SUM(CASE WHEN result = 'loss' THEN 1 ELSE 0 END) as lossTrades,
+        SUM(CASE WHEN result = 'breakeven' THEN 1 ELSE 0 END) as breakevenTrades,
+        SUM(profit) as totalProfit,
+        AVG(profit) as avgProfit,
+        AVG(CASE WHEN result = 'win' THEN profit ELSE NULL END) as avgWin,
+        AVG(CASE WHEN result = 'loss' THEN ABS(profit) ELSE NULL END) as avgLoss,
+        SUM(CASE WHEN result = 'win' THEN profit ELSE 0 END) as totalWinProfit,
+        SUM(CASE WHEN result = 'loss' THEN ABS(profit) ELSE 0 END) as totalLossProfit
+      FROM trades
+      ${whereClause}
+    `, params);
+
+    const overview = overviewRows[0];
+    const winRate = overview.totalTrades > 0 ? (overview.winTrades / overview.totalTrades * 100).toFixed(2) : 0;
+    const profitFactor = overview.totalLossProfit > 0 ? (overview.totalWinProfit / overview.totalLossProfit).toFixed(2) : 0;
+
+    // 2. 按货币对统计
+    const [symbolRows] = await pool.query(`
+      SELECT 
+        symbol,
+        COUNT(*) as count,
+        SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) as wins,
+        SUM(profit) as profit
+      FROM trades
+      ${whereClause}
+      GROUP BY symbol
+    `, params);
+
+    const symbolStats = symbolRows.map(s => ({
+      ...s,
+      winRate: s.count > 0 ? ((s.wins / s.count) * 100).toFixed(2) : 0
+    }));
+
+    // 3. 按方法统计
+    const [methodRows] = await pool.query(`
+      SELECT 
+        methodId,
+        methodName,
+        COUNT(*) as count,
+        SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) as wins,
+        SUM(profit) as profit
+      FROM trades
+      ${whereClause}
+      GROUP BY methodId, methodName
+    `, params);
+
+    const methodStats = methodRows.map(m => ({
+      ...m,
+      winRate: m.count > 0 ? ((m.wins / m.count) * 100).toFixed(2) : 0
+    }));
+
+    // 4. 每日盈亏曲线
+    const [curveRows] = await pool.query(`
+      SELECT 
+        DATE(entryTime) as date,
+        SUM(profit) as profit
+      FROM trades
+      ${whereClause}
+      GROUP BY DATE(entryTime)
+      ORDER BY date
+    `, params);
+
+    let cumulativeProfit = 0;
+    const profitCurve = curveRows.map(row => {
+      cumulativeProfit += row.profit;
       return {
-        date,
-        profit: dailyProfits[date],
+        date: row.date.toISOString().split('T')[0],
+        profit: row.profit,
         cumulative: cumulativeProfit
       };
     });
-  
-  res.json({
-    success: true,
-    data: {
-      overview: {
-        totalTrades,
-        winTrades,
-        lossTrades,
-        breakevenTrades,
-        winRate: parseFloat(winRate),
-        totalProfit,
-        avgProfit: parseFloat(avgProfit),
-        avgWin: parseFloat(avgWin),
-        avgLoss: parseFloat(avgLoss),
-        profitFactor: parseFloat(profitFactor)
-      },
-      symbolStats: symbolStatsArray,
-      methodStats: methodStatsArray,
-      profitCurve
-    }
-  });
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalTrades: overview.totalTrades,
+          winTrades: overview.winTrades,
+          lossTrades: overview.lossTrades,
+          breakevenTrades: overview.breakevenTrades,
+          winRate: parseFloat(winRate),
+          totalProfit: overview.totalProfit || 0,
+          avgProfit: parseFloat(overview.avgProfit || 0).toFixed(2),
+          avgWin: parseFloat(overview.avgWin || 0).toFixed(2),
+          avgLoss: parseFloat(overview.avgLoss || 0).toFixed(2),
+          profitFactor: parseFloat(profitFactor)
+        },
+        symbolStats,
+        methodStats,
+        profitCurve
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 // 获取最近交易
-router.get('/recent', (req, res) => {
-  const limit = parseInt(req.query.limit) || 5;
-  const recentTrades = [...trades]
-    .sort((a, b) => new Date(b.entryTime) - new Date(a.entryTime))
-    .slice(0, limit);
-  
-  res.json({
-    success: true,
-    data: recentTrades
-  });
+router.get('/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 5;
+    const [rows] = await pool.query('SELECT * FROM trades ORDER BY entryTime DESC LIMIT ?', [limit]);
+    
+    const formattedRows = rows.map(row => ({
+      ...row,
+      tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags
+    }));
+
+    res.json({
+      success: true,
+      data: formattedRows
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 module.exports = router;

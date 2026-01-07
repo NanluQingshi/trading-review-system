@@ -5,6 +5,7 @@
 [![React](https://img.shields.io/badge/React-18.x-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-14+-green.svg)](https://nodejs.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)](https://www.mysql.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -13,33 +14,49 @@
 
 - 🎯 **三大核心功能** - Method 库、交易复盘、数据统计
 - 📊 **数据可视化** - 多种图表展示交易数据
-- 💾 **本地部署** - 数据隐私安全可控
+- 💾 **持久化存储** - 接入 MySQL 数据库，数据永久保存
 - 🎨 **美观界面** - 基于 Ant Design 的专业 UI
-- 🚀 **开箱即用** - 包含示例数据，快速上手
+- 🚀 **开箱即用** - 包含初始化脚本，快速迁移数据
 - 📱 **响应式设计** - 适配不同屏幕尺寸
 
 ---
 
 ## 🚀 快速开始
 
-### 一键启动
+### 1. 环境准备
+
+确保您的系统中已安装：
+- **Node.js** (v14+)
+- **MySQL** (v8.0+)
+
+### 2. 数据库配置
+
+1. 进入 `server` 目录，根据 `.env.example`（或直接编辑 `.env`）配置您的数据库信息：
+   ```env
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=您的密码
+   DB_NAME=trading-review-system
+   DB_PORT=3306
+   ```
+
+2. 初始化数据库（创建表结构并导入初始数据）：
+   ```bash
+   cd server
+   node init-db.js
+   ```
+
+### 3. 启动项目
 
 ```bash
-cd trading-review-system
-./start.sh
+# 在根目录下安装所有依赖
+npm run install-all
+
+# 启动开发服务器（前后端同时启动）
+npm run dev
 ```
 
 然后访问：http://localhost:3000
-
-### 或使用 npm 命令
-
-```bash
-# 安装依赖（首次使用）
-npm run install-all
-
-# 启动开发服务器
-npm run dev
-```
 
 ---
 
@@ -80,19 +97,8 @@ npm run dev
 ### 后端
 - **Node.js** - JavaScript 运行时
 - **Express** - Web 框架
-- **SQLite3** - 轻量级数据库（准备就绪）
-
----
-
-## 📖 文档
-
-- 📘 **[开始使用.md](开始使用.md)** - 快速入门指南 ⭐ 推荐首先阅读
-- 📗 **[功能演示指南.md](功能演示指南.md)** - 详细功能演示
-- 📙 **[使用指南.md](使用指南.md)** - 完整使用说明
-- 📕 **[快速参考.md](快速参考.md)** - 命令速查手册
-- 📔 **[项目说明.md](项目说明.md)** - 技术文档
-- 📓 **[API测试.md](API测试.md)** - API 文档
-- 📖 **[文档索引.md](文档索引.md)** - 文档导航
+- **MySQL 8.0** - 关系型数据库
+- **mysql2** - 高性能 MySQL 驱动
 
 ---
 
@@ -107,8 +113,10 @@ trading-review-system/
 │   │   └── types/         # TypeScript 类型
 │   └── package.json
 ├── server/                # Node.js 后端
-│   ├── data/             # 模拟数据
+│   ├── db.js             # 数据库连接池配置
+│   ├── init-db.js        # 数据库初始化脚本
 │   ├── routes/           # API 路由
+│   ├── .env              # 数据库环境变量
 │   └── package.json
 ├── start.sh              # 快速启动脚本
 ├── test-api.sh          # API 测试脚本
@@ -117,22 +125,12 @@ trading-review-system/
 
 ---
 
-## 🎯 使用场景
+## 📊 数据说明
 
-- 📝 系统记录每笔交易
-- 📊 分析交易数据和表现
-- 🎯 优化交易策略
-- 💰 提升交易业绩
-- 📈 追踪长期进步
-
----
-
-## 💡 示例数据
-
-系统预置了示例数据供您学习：
-- **4个交易方法** - 不同类型的交易策略
-- **8条交易记录** - 涵盖多个货币对
-- **完整统计数据** - 胜率 62.5%，盈亏因子 7.6
+### 当前版本 (v1.1.0)
+- **MySQL 持久化**：所有交易数据和方法库均存储在 MySQL 中。
+- **数据安全**：支持通过环境变量配置敏感信息。
+- **高性能统计**：利用 SQL 聚合查询优化统计报表生成。
 
 ---
 
@@ -142,6 +140,9 @@ trading-review-system/
 # 安装所有依赖
 npm run install-all
 
+# 初始化数据库
+node server/init-db.js
+
 # 启动开发服务器（前后端）
 npm run dev
 
@@ -150,9 +151,6 @@ npm run server
 
 # 单独启动前端
 npm run client
-
-# 测试 API
-./test-api.sh
 ```
 
 ---
@@ -162,29 +160,6 @@ npm run client
 - **前端界面**: http://localhost:3000
 - **后端 API**: http://localhost:5000/api
 - **健康检查**: http://localhost:5000/api/health
-
----
-
-## 📊 数据说明
-
-### 当前版本
-- 使用模拟数据（内存存储）
-- 重启后重置为初始数据
-- 适合学习和测试
-
-### 未来版本
-- SQLite 数据库持久化
-- 数据导入/导出功能
-- 云同步（可选）
-
----
-
-## 🎓 学习路径
-
-1. **第一天** - 阅读 [开始使用.md](开始使用.md)，启动系统
-2. **第一周** - 阅读 [功能演示指南.md](功能演示指南.md)，熟悉功能
-3. **第一月** - 持续使用，积累数据
-4. **长期** - 根据数据优化策略
 
 ---
 
@@ -215,7 +190,3 @@ MIT License - 自由使用和修改
 ```
 
 **祝您交易顺利！** 🚀📈💰
-
----
-
-**需要帮助？** 查看 [开始使用.md](开始使用.md) 或 [文档索引.md](文档索引.md)

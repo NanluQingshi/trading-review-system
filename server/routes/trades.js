@@ -1,117 +1,161 @@
 const express = require('express');
 const router = express.Router();
-const { trades } = require('../data/mockData');
-let tradesData = [...trades];
+const pool = require('../db');
 
 // 获取所有交易记录
-router.get('/', (req, res) => {
-  const { symbol, methodId, result, startDate, endDate } = req.query;
-  
-  let filteredTrades = [...tradesData];
-  
-  // 按货币对筛选
-  if (symbol) {
-    filteredTrades = filteredTrades.filter(t => t.symbol === symbol);
+router.get('/', async (req, res) => {
+  try {
+    const { symbol, methodId, result, startDate, endDate } = req.query;
+    
+    let query = 'SELECT * FROM trades WHERE 1=1';
+    const params = [];
+
+    if (symbol) {
+      query += ' AND symbol = ?';
+      params.push(symbol);
+    }
+    if (methodId) {
+      query += ' AND methodId = ?';
+      params.push(methodId);
+    }
+    if (result) {
+      query += ' AND result = ?';
+      params.push(result);
+    }
+    if (startDate) {
+      query += ' AND entryTime >= ?';
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ' AND entryTime <= ?';
+      params.push(endDate);
+    }
+
+    query += ' ORDER BY entryTime DESC';
+
+    const [rows] = await pool.query(query, params);
+    
+    // 处理 tags (MySQL 中存储为 JSON 字符串或 JSON 类型)
+    const formattedRows = rows.map(row => ({
+      ...row,
+      tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags
+    }));
+
+    res.json({
+      success: true,
+      data: formattedRows
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
-  
-  // 按方法筛选
-  if (methodId) {
-    filteredTrades = filteredTrades.filter(t => t.methodId === parseInt(methodId));
-  }
-  
-  // 按结果筛选
-  if (result) {
-    filteredTrades = filteredTrades.filter(t => t.result === result);
-  }
-  
-  // 按日期范围筛选
-  if (startDate) {
-    filteredTrades = filteredTrades.filter(t => t.entryTime >= startDate);
-  }
-  if (endDate) {
-    filteredTrades = filteredTrades.filter(t => t.entryTime <= endDate);
-  }
-  
-  res.json({
-    success: true,
-    data: filteredTrades.sort((a, b) => new Date(b.entryTime) - new Date(a.entryTime))
-  });
 });
 
 // 获取单个交易记录
-router.get('/:id', (req, res) => {
-  const trade = tradesData.find(t => t.id === parseInt(req.params.id));
-  if (trade) {
-    res.json({
-      success: true,
-      data: trade
-    });
-  } else {
-    res.status(404).json({
-      success: false,
-      message: '交易记录不存在'
-    });
+router.get('/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM trades WHERE id = ?', [req.params.id]);
+    if (rows.length > 0) {
+      const trade = rows[0];
+      trade.tags = typeof trade.tags === 'string' ? JSON.parse(trade.tags) : trade.tags;
+      res.json({
+        success: true,
+        data: trade
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: '交易记录不存在'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 // 创建新交易记录
-router.post('/', (req, res) => {
-  const newTrade = {
-    id: tradesData.length > 0 ? Math.max(...tradesData.map(t => t.id)) + 1 : 1,
-    ...req.body,
-    profit: calculateProfit(req.body),
-    profitPercent: calculateProfitPercent(req.body)
-  };
-  tradesData.push(newTrade);
-  res.status(201).json({
-    success: true,
-    data: newTrade
-  });
+router.post('/', async (req, res) => {
+  try {
+    const trade = req.body;
+    const profit = calculateProfit(trade);
+    const profitPercent = calculateProfitPercent(trade);
+
+    const [result] = await pool.query(
+      'INSERT INTO trades (symbol, direction, entryPrice, exitPrice, entryTime, exitTime, lots, profit, profitPercent, methodId, methodName, notes, tags, result, riskRewardRatio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice,
+        trade.entryTime, trade.exitTime, trade.lots, profit,
+        profitPercent, trade.methodId, trade.methodName, trade.notes,
+        JSON.stringify(trade.tags || []), trade.result, trade.riskRewardRatio
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      data: { id: result.insertId, ...trade, profit, profitPercent }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 // 更新交易记录
-router.put('/:id', (req, res) => {
-  const index = tradesData.findIndex(t => t.id === parseInt(req.params.id));
-  if (index !== -1) {
-    tradesData[index] = {
-      ...tradesData[index],
-      ...req.body,
-      profit: calculateProfit({ ...tradesData[index], ...req.body }),
-      profitPercent: calculateProfitPercent({ ...tradesData[index], ...req.body })
-    };
-    res.json({
-      success: true,
-      data: tradesData[index]
-    });
-  } else {
-    res.status(404).json({
-      success: false,
-      message: '交易记录不存在'
-    });
+router.put('/:id', async (req, res) => {
+  try {
+    const trade = req.body;
+    const profit = calculateProfit(trade);
+    const profitPercent = calculateProfitPercent(trade);
+
+    const [result] = await pool.query(
+      'UPDATE trades SET symbol = ?, direction = ?, entryPrice = ?, exitPrice = ?, entryTime = ?, exitTime = ?, lots = ?, profit = ?, profitPercent = ?, methodId = ?, methodName = ?, notes = ?, tags = ?, result = ?, riskRewardRatio = ? WHERE id = ?',
+      [
+        trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice,
+        trade.entryTime, trade.exitTime, trade.lots, profit,
+        profitPercent, trade.methodId, trade.methodName, trade.notes,
+        JSON.stringify(trade.tags || []), trade.result, trade.riskRewardRatio,
+        req.params.id
+      ]
+    );
+
+    if (result.affectedRows > 0) {
+      res.json({
+        success: true,
+        data: { id: req.params.id, ...trade, profit, profitPercent }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: '交易记录不存在'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 // 删除交易记录
-router.delete('/:id', (req, res) => {
-  const index = tradesData.findIndex(t => t.id === parseInt(req.params.id));
-  if (index !== -1) {
-    tradesData.splice(index, 1);
-    res.json({
-      success: true,
-      message: '删除成功'
-    });
-  } else {
-    res.status(404).json({
-      success: false,
-      message: '交易记录不存在'
-    });
+router.delete('/:id', async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM trades WHERE id = ?', [req.params.id]);
+    if (result.affectedRows > 0) {
+      res.json({
+        success: true,
+        message: '删除成功'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: '交易记录不存在'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 // 辅助函数：计算盈亏
 function calculateProfit(trade) {
   const { direction, entryPrice, exitPrice, lots } = trade;
-  const pipValue = 10; // 简化计算，实际应根据货币对和手数计算
+  const pipValue = 10; 
   const pips = direction === 'long' 
     ? (exitPrice - entryPrice) * 10000 
     : (entryPrice - exitPrice) * 10000;
