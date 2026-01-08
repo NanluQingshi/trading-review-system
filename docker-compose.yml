@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: trading-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: trading-review-system
+      MYSQL_ROOT_PASSWORD: your_secure_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  server:
+    build: ./server
+    container_name: trading-server
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=your_secure_password
+      - DB_NAME=trading-review-system
+    depends_on:
+      - db
+
+  client:
+    build: ./client
+    container_name: trading-client
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    # 生产环境通常使用 Nginx 托管前端静态文件
+
+volumes:
+  db_data:
