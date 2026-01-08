@@ -22,16 +22,13 @@ import {
   PlusOutlined, 
   EditOutlined, 
   DeleteOutlined, 
-  SearchOutlined,
-  InfoCircleOutlined
-} from '@ant-design/icons';
+  SearchOutlined} from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Trade, Method } from '../types';
 import { tradesApi, methodsApi } from '../services/api';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 
 const TradesPage: React.FC = () => {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -251,7 +248,12 @@ const TradesPage: React.FC = () => {
         dataSource={trades} 
         rowKey="id" 
         loading={loading}
-        pagination={{ pageSize: 10 }}
+        pagination={{ 
+          pageSize: 10,
+          showTotal: (total) => `共 ${total} 条记录`,
+          showSizeChanger: true,
+          showQuickJumper: true
+        }}
         expandable={{
           expandedRowRender: record => (
             <div style={{ padding: '8px 24px' }}>

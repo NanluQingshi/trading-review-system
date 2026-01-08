@@ -149,7 +149,7 @@ const MethodsPage: React.FC = () => {
                           <Statistic 
                             title="使用次数" 
                             value={method.usage_count} 
-                            valueStyle={{ fontSize: 18 }}
+                            styles={{ content: { fontSize: 18 } }}
                             prefix={<ThunderboltOutlined style={{ fontSize: 14 }} />}
                           />
                         </Col>
@@ -159,7 +159,7 @@ const MethodsPage: React.FC = () => {
                             value={method.win_rate * 100} 
                             precision={1}
                             suffix="%"
-                            valueStyle={{ fontSize: 18, color: method.win_rate >= 0.5 ? '#52c41a' : '#faad14' }}
+                            styles={{ content: { fontSize: 18, color: method.win_rate >= 0.5 ? '#52c41a' : '#faad14' } }}
                             prefix={<PercentageOutlined style={{ fontSize: 14 }} />}
                           />
                         </Col>

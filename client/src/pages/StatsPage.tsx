@@ -139,7 +139,7 @@ const StatsPage: React.FC = () => {
               value={overview.winRate}
               precision={2}
               suffix="%"
-              valueStyle={{ color: overview.winRate >= 50 ? '#3f8600' : '#cf1322' }}
+              styles={{ content: { color: overview.winRate >= 50 ? '#3f8600' : '#cf1322' } }}
               prefix={overview.winRate >= 50 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
             />
           </Card>
@@ -150,7 +150,7 @@ const StatsPage: React.FC = () => {
               title="总盈亏"
               value={overview.totalProfit}
               precision={2}
-              valueStyle={{ color: overview.totalProfit >= 0 ? '#3f8600' : '#cf1322' }}
+              styles={{ content: { color: overview.totalProfit >= 0 ? '#3f8600' : '#cf1322' } }}
               prefix={<DollarOutlined />}
             />
           </Card>
@@ -161,7 +161,7 @@ const StatsPage: React.FC = () => {
               title="盈亏因子"
               value={overview.profitFactor}
               precision={2}
-              valueStyle={{ color: overview.profitFactor >= 1 ? '#3f8600' : '#cf1322' }}
+              styles={{ content: { color: overview.profitFactor >= 1 ? '#3f8600' : '#cf1322' } }}
             />
           </Card>
         </Col>
@@ -174,7 +174,7 @@ const StatsPage: React.FC = () => {
             <Statistic
               title="盈利交易"
               value={overview.winTrades}
-              valueStyle={{ color: '#3f8600' }}
+              styles={{ content: { color: '#3f8600' } }}
             />
           </Card>
         </Col>
@@ -183,7 +183,7 @@ const StatsPage: React.FC = () => {
             <Statistic
               title="亏损交易"
               value={overview.lossTrades}
-              valueStyle={{ color: '#cf1322' }}
+              styles={{ content: { color: '#cf1322' } }}
             />
           </Card>
         </Col>
@@ -193,7 +193,7 @@ const StatsPage: React.FC = () => {
               title="平均盈利"
               value={overview.avgWin}
               precision={2}
-              valueStyle={{ color: '#3f8600' }}
+              styles={{ content: { color: '#3f8600' } }}
             />
           </Card>
         </Col>
@@ -203,7 +203,7 @@ const StatsPage: React.FC = () => {
               title="平均亏损"
               value={overview.avgLoss}
               precision={2}
-              valueStyle={{ color: '#cf1322' }}
+              styles={{ content: { color: '#cf1322' } }}
             />
           </Card>
         </Col>
