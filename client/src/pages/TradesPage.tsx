@@ -143,9 +143,19 @@ const TradesPage: React.FC = () => {
       title: '入场/出场价格',
       key: 'prices',
       render: (_: any, record: Trade) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text type="secondary" style={{ fontSize: '12px' }}>入: {record.entryPrice}</Text>
           <Text type="secondary" style={{ fontSize: '12px' }}>出: {record.exitPrice}</Text>
+        </Space>
+      ),
+    },
+    {
+      title: '交易时间',
+      key: 'times',
+      render: (_: any, record: Trade) => (
+        <Space orientation="vertical" size={0}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>入: {dayjs(record.entryTime).format('YYYY-MM-DD HH:mm')}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>出: {dayjs(record.exitTime).format('YYYY-MM-DD HH:mm')}</Text>
         </Space>
       ),
     },
