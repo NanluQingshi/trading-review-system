@@ -81,6 +81,8 @@ const AppContent: React.FC = () => {
       </Sider>
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{ 
+          position: 'fixed', 
+          width: `calc(100% - ${collapsed ? 80 : 200}px)`,
           padding: '0 24px', 
           background: '#fff', 
           display: 'flex', 
@@ -93,7 +95,7 @@ const AppContent: React.FC = () => {
             <GithubOutlined />
           </a>
         </Header>
-        <Content style={{ margin: '24px 16px', overflow: 'initial' }}>
+        <Content style={{ margin: '80px 16px', overflow: 'initial' }}>
           <div style={{ 
             padding: 24, 
             background: '#fff', 
