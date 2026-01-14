@@ -6,7 +6,7 @@ const methodRoutes = require('./routes/methods');
 const tradeRoutes = require('./routes/trades');
 const statsRoutes = require('./routes/stats');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 
 // 中间件
 app.use(cors());

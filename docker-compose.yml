@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -18,7 +18,7 @@ services:
     container_name: trading-server
     restart: always
     ports:
-      - "5000:5000"
+      - "5050:5050"
     environment:
       - DB_HOST=db
       - DB_USER=root

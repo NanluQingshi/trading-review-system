@@ -1,7 +1,8 @@
 # API 接口测试文档
+
 ## 基础信息
 
-- **Base URL**: http://localhost:5000/api
+- **Base URL**: http://localhost:5050/api
 - **Content-Type**: application/json
 
 ## 健康检查
@@ -11,10 +12,11 @@
 检查服务器是否正常运行
 
 ```bash
-curl http://localhost:5000/api/health
+curl http://localhost:5050/api/health
 ```
 
 **响应示例：**
+
 ```json
 {
   "status": "ok",
@@ -31,7 +33,7 @@ curl http://localhost:5000/api/health
 **GET** `/api/methods`
 
 ```bash
-curl http://localhost:5000/api/methods
+curl http://localhost:5050/api/methods
 ```
 
 ### 2. 获取单个方法
@@ -39,7 +41,7 @@ curl http://localhost:5000/api/methods
 **GET** `/api/methods/:id`
 
 ```bash
-curl http://localhost:5000/api/methods/1
+curl http://localhost:5050/api/methods/1
 ```
 
 ### 3. 创建新方法
@@ -47,7 +49,7 @@ curl http://localhost:5000/api/methods/1
 **POST** `/api/methods`
 
 ```bash
-curl -X POST http://localhost:5000/api/methods \
+curl -X POST http://localhost:5050/api/methods \
   -H "Content-Type: application/json" \
   -d '{
     "name": "测试方法",
@@ -62,7 +64,7 @@ curl -X POST http://localhost:5000/api/methods \
 **PUT** `/api/methods/:id`
 
 ```bash
-curl -X PUT http://localhost:5000/api/methods/1 \
+curl -X PUT http://localhost:5050/api/methods/1 \
   -H "Content-Type: application/json" \
   -d '{
     "name": "更新后的方法名",
@@ -75,7 +77,7 @@ curl -X PUT http://localhost:5000/api/methods/1 \
 **DELETE** `/api/methods/:id`
 
 ```bash
-curl -X DELETE http://localhost:5000/api/methods/1
+curl -X DELETE http://localhost:5050/api/methods/1
 ```
 
 ---
@@ -87,21 +89,22 @@ curl -X DELETE http://localhost:5000/api/methods/1
 **GET** `/api/trades`
 
 支持查询参数：
+
 - `symbol`: 货币对筛选
-- `methodId`: 方法ID筛选
+- `methodId`: 方法 ID 筛选
 - `result`: 结果筛选 (win/loss/breakeven)
 - `startDate`: 开始日期
 - `endDate`: 结束日期
 
 ```bash
 # 获取所有记录
-curl http://localhost:5000/api/trades
+curl http://localhost:5050/api/trades
 
 # 筛选EUR/USD的交易
-curl "http://localhost:5000/api/trades?symbol=EUR/USD"
+curl "http://localhost:5050/api/trades?symbol=EUR/USD"
 
 # 筛选盈利的交易
-curl "http://localhost:5000/api/trades?result=win"
+curl "http://localhost:5050/api/trades?result=win"
 ```
 
 ### 2. 获取单个交易记录
@@ -109,7 +112,7 @@ curl "http://localhost:5000/api/trades?result=win"
 **GET** `/api/trades/:id`
 
 ```bash
-curl http://localhost:5000/api/trades/1
+curl http://localhost:5050/api/trades/1
 ```
 
 ### 3. 创建新交易记录
@@ -117,7 +120,7 @@ curl http://localhost:5000/api/trades/1
 **POST** `/api/trades`
 
 ```bash
-curl -X POST http://localhost:5000/api/trades \
+curl -X POST http://localhost:5050/api/trades \
   -H "Content-Type: application/json" \
   -d '{
     "symbol": "EUR/USD",
@@ -141,7 +144,7 @@ curl -X POST http://localhost:5000/api/trades \
 **PUT** `/api/trades/:id`
 
 ```bash
-curl -X PUT http://localhost:5000/api/trades/1 \
+curl -X PUT http://localhost:5050/api/trades/1 \
   -H "Content-Type: application/json" \
   -d '{
     "notes": "更新后的笔记",
@@ -154,7 +157,7 @@ curl -X PUT http://localhost:5000/api/trades/1 \
 **DELETE** `/api/trades/:id`
 
 ```bash
-curl -X DELETE http://localhost:5000/api/trades/1
+curl -X DELETE http://localhost:5050/api/trades/1
 ```
 
 ---
@@ -166,18 +169,20 @@ curl -X DELETE http://localhost:5000/api/trades/1
 **GET** `/api/stats`
 
 支持查询参数：
+
 - `startDate`: 开始日期
 - `endDate`: 结束日期
 
 ```bash
 # 获取所有统计
-curl http://localhost:5000/api/stats
+curl http://localhost:5050/api/stats
 
 # 获取指定日期范围的统计
-curl "http://localhost:5000/api/stats?startDate=2024-12-01&endDate=2024-12-31"
+curl "http://localhost:5050/api/stats?startDate=2024-12-01&endDate=2024-12-31"
 ```
 
 **响应示例：**
+
 ```json
 {
   "success": true,
@@ -206,14 +211,15 @@ curl "http://localhost:5000/api/stats?startDate=2024-12-01&endDate=2024-12-31"
 **GET** `/api/stats/recent`
 
 支持查询参数：
-- `limit`: 返回记录数量（默认5）
+
+- `limit`: 返回记录数量（默认 5）
 
 ```bash
 # 获取最近5条交易
-curl http://localhost:5000/api/stats/recent
+curl http://localhost:5050/api/stats/recent
 
 # 获取最近10条交易
-curl "http://localhost:5000/api/stats/recent?limit=10"
+curl "http://localhost:5050/api/stats/recent?limit=10"
 ```
 
 ---
@@ -248,19 +254,19 @@ curl "http://localhost:5000/api/stats/recent?limit=10"
 #!/bin/bash
 
 echo "=== 测试健康检查 ==="
-curl http://localhost:5000/api/health
+curl http://localhost:5050/api/health
 echo -e "\n"
 
 echo "=== 测试获取所有方法 ==="
-curl http://localhost:5000/api/methods
+curl http://localhost:5050/api/methods
 echo -e "\n"
 
 echo "=== 测试获取所有交易 ==="
-curl http://localhost:5000/api/trades
+curl http://localhost:5050/api/trades
 echo -e "\n"
 
 echo "=== 测试获取统计数据 ==="
-curl http://localhost:5000/api/stats
+curl http://localhost:5050/api/stats
 echo -e "\n"
 
 echo "=== 测试完成 ==="
@@ -279,5 +285,5 @@ chmod +x test-api.sh
 
 1. **数据持久化**：当前版本使用内存存储，重启服务器后数据会重置
 2. **CORS**：已配置允许跨域请求
-3. **端口**：确保 5000 端口未被占用
+3. **端口**：确保 5050 端口未被占用
 4. **时间格式**：使用 `YYYY-MM-DD HH:mm:ss` 格式

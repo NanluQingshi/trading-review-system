@@ -12,7 +12,7 @@ fi
 echo "✅ 依赖检查完成"
 echo ""
 echo "🔧 启动服务..."
-echo "   - 后端服务: http://localhost:5000"
+echo "   - 后端服务: http://localhost:5050"
 echo "   - 前端界面: http://localhost:3000"
 echo ""
 echo "💡 提示: 按 Ctrl+C 停止服务"
