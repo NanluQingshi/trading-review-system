@@ -111,7 +111,7 @@ const AppContent: React.FC = () => {
           </div>
         </Content>
         <Footer style={{ textAlign: 'center', color: '#8c8c8c' }}>
-          Trading Review System ©2026 Created by CatPaw
+          Trading Review System ©2026 Created by NanluQingshi
         </Footer>
       </Layout>
     </Layout>
