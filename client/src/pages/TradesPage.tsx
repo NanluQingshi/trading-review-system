@@ -293,13 +293,6 @@ const TradesPage: React.FC = () => {
         </Col>
         <Col>
           <Space>
-            <Button 
-              icon={<InfoCircleOutlined />} 
-              onClick={handleRuleModalOpen} 
-              size="large"
-            >
-              计算规则
-            </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} size="large">
               新增交易
             </Button>
@@ -467,115 +460,6 @@ const TradesPage: React.FC = () => {
             <Select mode="tags" style={{ width: '100%' }} placeholder="输入标签并回车" />
           </Form.Item>
         </Form>
-      </Modal>
-
-      {/* 计算规则模态框 */}
-      <Modal
-        title={<Space>
-          <InfoCircleOutlined />
-          <span>盈亏计算规则</span>
-        </Space>}
-        open={isRuleModalVisible}
-        onCancel={handleRuleModalClose}
-        footer={[
-          <Button key="close" onClick={handleRuleModalClose}>
-            关闭
-          </Button>
-        ]}
-        width={800}
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden', padding: '24px' }}
-      >
-        <div>
-          <Title level={5} style={{ marginTop: 0, marginBottom: 10 }}>计算规则说明</Title>
-          <Text type="secondary" style={{ fontSize: '14px' }}>本系统采用标准外汇交易计算规则，基于以下假设：</Text>
-          
-          <Descriptions column={1} bordered style={{ marginTop: 15, marginBottom: 15 }} size="small">
-            <Descriptions.Item label="点值 (pipValue)">10 美元/点/标准手</Descriptions.Item>
-            <Descriptions.Item label="报价精度">4位小数（例如：1.2345）</Descriptions.Item>
-            <Descriptions.Item label="1标准手">100,000 单位</Descriptions.Item>
-          </Descriptions>
-
-          <Collapse defaultActiveKey={[]} style={{ marginTop: 0 }} size="small">
-            <Panel header="盈亏金额计算" key="profit">
-              <div style={{ marginBottom: 10, fontSize: '14px' }}>
-                <Text strong>计算公式：</Text>
-                <div style={{ marginLeft: 20, marginTop: 8 }}>
-                  <Space direction="vertical" size="small">
-                    <div>
-                      <Text code>盈亏金额 = 点差 × 手数 × 点值</Text>
-                    </div>
-                    <div>
-                      <Text code>点差 = （价格差）× 10000</Text>
-                    </div>
-                  </Space>
-                </div>
-              </div>
-              
-              <div style={{ marginBottom: 10, fontSize: '14px' }}>
-                <Text strong>方向判断：</Text>
-                <ul style={{ marginLeft: 40, marginTop: 8, paddingLeft: 10 }}>
-                  <li style={{ marginBottom: 5 }}><Text>做多 (long)：<Text code>点差 = (出场价格 - 入场价格) × 10000</Text></Text></li>
-                  <li style={{ marginBottom: 5 }}><Text>做空 (short)：<Text code>点差 = (入场价格 - 出场价格) × 10000</Text></Text></li>
-                </ul>
-              </div>
-              
-              <div style={{ marginBottom: 10, fontSize: '14px' }}>
-                <Text strong>示例：</Text>
-                <div style={{ marginLeft: 20, marginTop: 8 }}>
-                  <p style={{ margin: '5px 0' }}>交易：EUR/USD 做多</p>
-                  <p style={{ margin: '5px 0' }}>入场价格：1.2000</p>
-                  <p style={{ margin: '5px 0' }}>出场价格：1.2050</p>
-                  <p style={{ margin: '5px 0' }}>手数：1 标准手</p>
-                  <p style={{ margin: '5px 0' }}>计算过程：</p>
-                  <ul style={{ marginLeft: 40, paddingLeft: 10 }}>
-                    <li style={{ margin: '3px 0' }}>价格差：1.2050 - 1.2000 = 0.0050</li>
-                    <li style={{ margin: '3px 0' }}>点差：0.0050 × 10000 = 50 点</li>
-                    <li style={{ margin: '3px 0' }}>盈亏金额：50 × 1 × 10 = 500 美元</li>
-                  </ul>
-                </div>
-              </div>
-            </Panel>
-            
-            <Panel header="盈亏百分比计算" key="profitPercent">
-              <div style={{ marginBottom: 10, fontSize: '14px' }}>
-                <Text strong>计算公式：</Text>
-                <div style={{ marginLeft: 20, marginTop: 8 }}>
-                  <Text code>盈亏百分比 = （价格差 / 入场价格）× 100%</Text>
-                </div>
-              </div>
-              
-              <div style={{ marginBottom: 10, fontSize: '14px' }}>
-                <Text strong>方向判断：</Text>
-                <ul style={{ marginLeft: 40, marginTop: 8, paddingLeft: 10 }}>
-                  <li style={{ marginBottom: 5 }}><Text>做多 (long)：<Text code>盈亏百分比 = ((出场价格 - 入场价格) / 入场价格) × 100%</Text></Text></li>
-                  <li style={{ marginBottom: 5 }}><Text>做空 (short)：<Text code>盈亏百分比 = ((入场价格 - 出场价格) / 入场价格) × 100%</Text></Text></li>
-                </ul>
-              </div>
-              
-              <div style={{ marginBottom: 10, fontSize: '14px' }}>
-                <Text strong>示例：</Text>
-                <div style={{ marginLeft: 20, marginTop: 8 }}>
-                  <p style={{ margin: '5px 0' }}>交易：EUR/USD 做空</p>
-                  <p style={{ margin: '5px 0' }}>入场价格：1.2000</p>
-                  <p style={{ margin: '5px 0' }}>出场价格：1.1950</p>
-                  <p style={{ margin: '5px 0' }}>计算过程：</p>
-                  <ul style={{ marginLeft: 40, paddingLeft: 10 }}>
-                    <li style={{ margin: '3px 0' }}>价格差：1.2000 - 1.1950 = 0.0050</li>
-                    <li style={{ margin: '3px 0' }}>盈亏百分比：(0.0050 / 1.2000) × 100% ≈ 0.42%</li>
-                  </ul>
-                </div>
-              </div>
-            </Panel>
-          </Collapse>
-
-          <Divider plain style={{ marginTop: 15, marginBottom: 10 }}><Text type="secondary" style={{ fontSize: '14px' }}>温馨提示</Text></Divider>
-          <ul style={{ margin: 0, paddingLeft: 20, fontSize: '14px' }}>
-            <li style={{ margin: '3px 0' }}>本计算规则适用于大多数外汇货币对</li>
-            <li style={{ margin: '3px 0' }}>对于黄金、原油等其他品种，计算规则可能有所不同</li>
-            <li style={{ margin: '3px 0' }}>实际交易盈亏可能受到滑点、佣金等因素影响</li>
-            <li style={{ margin: '3px 0' }}>系统自动根据您选择的交易结果（盈利/亏损/保本）匹配计算值</li>
-          </ul>
-        </div>
       </Modal>
     </div>
   );
