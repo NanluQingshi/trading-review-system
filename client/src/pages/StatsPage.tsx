@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Table, message, Spin, Empty } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, TrophyOutlined, DollarOutlined } from '@ant-design/icons';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Stats } from '../types';
 import { statsApi } from '../services/api';
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 const StatsPage: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -41,11 +40,6 @@ const StatsPage: React.FC = () => {
   const { overview, symbolStats, methodStats, profitCurve } = stats;
 
   // 准备胜负分布数据
-  const resultDistribution = [
-    { name: '盈利', value: overview.winTrades },
-    { name: '亏损', value: overview.lossTrades },
-    { name: '保本', value: overview.breakevenTrades },
-  ];
 
   // 货币对表格列
   const symbolColumns = [
