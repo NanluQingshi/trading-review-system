@@ -167,8 +167,8 @@ const TradesPage: React.FC = () => {
       key: 'prices',
       render: (_: any, record: Trade) => (
         <Space orientation="vertical" size={0}>
-          <Text type="secondary" style={{ fontSize: '12px' }}>入: {record.entryPrice}</Text>
-          <Text type="secondary" style={{ fontSize: '12px' }}>出: {record.exitPrice}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>入: {record.entryPrice !== null ? record.entryPrice : '-'}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>出: {record.exitPrice !== null ? record.exitPrice : '-'}</Text>
         </Space>
       ),
     },
@@ -177,8 +177,8 @@ const TradesPage: React.FC = () => {
       key: 'times',
       render: (_: any, record: Trade) => (
         <Space orientation="vertical" size={0}>
-          <Text type="secondary" style={{ fontSize: '12px' }}>入: {dayjs(record.entryTime).format('YYYY-MM-DD HH:mm')}</Text>
-          <Text type="secondary" style={{ fontSize: '12px' }}>出: {dayjs(record.exitTime).format('YYYY-MM-DD HH:mm')}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>入: {record.entryTime ? dayjs(record.entryTime).format('YYYY-MM-DD HH:mm') : '-'}</Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>出: {record.exitTime ? dayjs(record.exitTime).format('YYYY-MM-DD HH:mm') : '-'}</Text>
         </Space>
       ),
     },
@@ -186,11 +186,15 @@ const TradesPage: React.FC = () => {
       title: '实际盈亏',
       dataIndex: 'profit',
       key: 'profit',
-      sorter: (a: Trade, b: Trade) => a.profit - b.profit,
-      render: (profit: number) => (
-        <Text strong style={{ color: profit > 0 ? '#52c41a' : profit < 0 ? '#f5222d' : '#8c8c8c' }}>
-          {profit > 0 ? `+${profit}` : profit}
-        </Text>
+      sorter: (a: Trade, b: Trade) => (a.profit || 0) - (b.profit || 0),
+      render: (profit: number | null) => (
+        profit !== null ? (
+          <Text strong style={{ color: profit > 0 ? '#52c41a' : profit < 0 ? '#f5222d' : '#8c8c8c' }}>
+            {profit > 0 ? `+${profit}` : profit}
+          </Text>
+        ) : (
+          '-'  
+        )
       ),
     },
     {
@@ -224,7 +228,10 @@ const TradesPage: React.FC = () => {
         { text: '保本', value: 'breakeven' },
       ],
       onFilter: (value: any, record: Trade) => record.result === value,
-      render: (result: string) => {
+      render: (result: string | null) => {
+        if (!result) {
+          return '-';
+        }
         let color = 'default';
         let text = '保本';
         if (result === 'win') { color = 'success'; text = '盈利'; }
