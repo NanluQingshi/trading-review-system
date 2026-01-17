@@ -16,16 +16,13 @@ import {
   Divider,
   Row,
   Col,
-  Tooltip,
-  Descriptions,
-  Collapse
+  Tooltip
 } from 'antd';
 import { 
   PlusOutlined, 
   EditOutlined, 
   DeleteOutlined, 
   SearchOutlined,
-  InfoCircleOutlined,
   CopyOutlined} from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Trade, Method } from '../types';
@@ -39,20 +36,9 @@ const TradesPage: React.FC = () => {
   const [methods, setMethods] = useState<Method[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isRuleModalVisible, setIsRuleModalVisible] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [form] = Form.useForm();
   const [confirmLoading, setConfirmLoading] = useState(false);
-  
-  const { Panel } = Collapse;
-  
-  const handleRuleModalOpen = () => {
-    setIsRuleModalVisible(true);
-  };
-  
-  const handleRuleModalClose = () => {
-    setIsRuleModalVisible(false);
-  };
 
   useEffect(() => {
     fetchTrades();
@@ -149,8 +135,8 @@ const TradesPage: React.FC = () => {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        entryTime: values.entryTime ? values.entryTime.format('YYYY-MM-DD HH:mm:ss') : null,
-        exitTime: values.exitTime ? values.exitTime.format('YYYY-MM-DD HH:mm:ss') : null,
+        entryTime: values.entryTime && values.entryTime.isValid() ? values.entryTime.format('YYYY-MM-DD HH:mm:ss') : null,
+        exitTime: values.exitTime && values.exitTime.isValid() ? values.exitTime.format('YYYY-MM-DD HH:mm:ss') : null,
       };
 
       setConfirmLoading(true);
@@ -359,7 +345,7 @@ const TradesPage: React.FC = () => {
         width={800}
         okText="保存"
         cancelText="取消"
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden' }}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden' } }}
         confirmLoading={confirmLoading}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 24 }}>

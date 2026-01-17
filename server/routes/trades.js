@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
-// 获取所有交易记录
-router.get('/', async (req, res) => {
+// 获取所有交易记录（兼容旧端点）
+const getTrades = async (req, res) => {
   try {
     const { symbol, methodId, result, startDate, endDate } = req.query;
     
@@ -48,10 +48,10 @@ router.get('/', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 获取单个交易记录
-router.get('/:id', async (req, res) => {
+// 获取单个交易记录（兼容旧端点）
+const getTrade = async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM trades WHERE id = ?', [req.params.id]);
     if (rows.length > 0) {
@@ -70,10 +70,10 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 创建新交易记录
-router.post('/', async (req, res) => {
+// 创建新交易记录（兼容旧端点）
+const createTrade = async (req, res) => {
   try {
     const trade = req.body;
     // 使用用户手动输入的盈亏值，而不是计算值
@@ -110,10 +110,10 @@ router.post('/', async (req, res) => {
     console.error('创建交易失败:', error);
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 更新交易记录
-router.put('/:id', async (req, res) => {
+// 更新交易记录（兼容旧端点）
+const updateTrade = async (req, res) => {
   try {
     const trade = req.body;
     // 使用用户手动输入的盈亏值，而不是计算值
@@ -165,10 +165,10 @@ router.put('/:id', async (req, res) => {
     console.error('更新交易失败:', error);
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 删除交易记录
-router.delete('/:id', async (req, res) => {
+// 删除交易记录（兼容旧端点）
+const deleteTrade = async (req, res) => {
   try {
     // 获取要删除的交易记录的methodId
     const [tradeResult] = await pool.query('SELECT methodId FROM trades WHERE id = ?', [req.params.id]);
@@ -192,7 +192,14 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
+
+// 新的语义化端点
+router.get('/list', getTrades);
+router.get('/detail/:id', getTrade);
+router.post('/create', createTrade);
+router.put('/update/:id', updateTrade);
+router.delete('/delete/:id', deleteTrade);
 
 // 辅助函数：计算盈亏
 function calculateProfit(trade) {

@@ -3,8 +3,8 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const pool = require('../db');
 
-// 获取所有方法
-router.get('/', async (req, res) => {
+// 获取所有方法（兼容旧端点）
+const getMethods = async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM methods');
     res.json({
@@ -14,10 +14,10 @@ router.get('/', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 获取单个方法
-router.get('/:id', async (req, res) => {
+// 获取单个方法（兼容旧端点）
+const getMethod = async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM methods WHERE id = ?', [req.params.id]);
     if (rows.length > 0) {
@@ -34,10 +34,10 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 创建新方法
-router.post('/', async (req, res) => {
+// 创建新方法（兼容旧端点）
+const createMethod = async (req, res) => {
   try {
     const { code, name, description, is_default } = req.body;
     const id = uuidv4();
@@ -57,10 +57,10 @@ router.post('/', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 更新方法
-router.put('/:id', async (req, res) => {
+// 更新方法（兼容旧端点）
+const updateMethod = async (req, res) => {
   try {
     const { code, name, description, is_default, win_rate, usage_count, total_pnl } = req.body;
     const [result] = await pool.query(
@@ -82,10 +82,10 @@ router.put('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
-// 删除方法
-router.delete('/:id', async (req, res) => {
+// 删除方法（兼容旧端点）
+const deleteMethod = async (req, res) => {
   try {
     const [result] = await pool.query('DELETE FROM methods WHERE id = ?', [req.params.id]);
     if (result.affectedRows > 0) {
@@ -102,6 +102,13 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+};
+
+// 新的语义化端点
+router.get('/list', getMethods);
+router.get('/detail/:id', getMethod);
+router.post('/create', createMethod);
+router.put('/update/:id', updateMethod);
+router.delete('/delete/:id', deleteMethod);
 
 module.exports = router;
