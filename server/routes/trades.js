@@ -76,24 +76,35 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const trade = req.body;
-    const profit = calculateProfit(trade);
-    const profitPercent = calculateProfitPercent(trade);
+    // 使用用户手动输入的盈亏值，而不是计算值
+    const profit = trade.profit;
+
+    // 如果没有提供methodName，尝试从methods表中查询
+    let methodName = trade.methodName;
+    if (!methodName && trade.methodId) {
+      const [methodRows] = await pool.query('SELECT name FROM methods WHERE id = ?', [trade.methodId]);
+      if (methodRows.length > 0) {
+        methodName = methodRows[0].name;
+      }
+    }
 
     const [result] = await pool.query(
-      'INSERT INTO trades (symbol, direction, entryPrice, exitPrice, entryTime, exitTime, lots, profit, profitPercent, methodId, methodName, notes, tags, result, riskRewardRatio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO trades (symbol, direction, entryPrice, exitPrice, entryTime, exitTime, lots, profit, expectedProfit, methodId, methodName, notes, tags, result) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice,
         trade.entryTime, trade.exitTime, trade.lots, profit,
-        profitPercent, trade.methodId, trade.methodName, trade.notes,
-        JSON.stringify(trade.tags || []), trade.result, trade.riskRewardRatio
+        trade.expectedProfit || null,
+        trade.methodId, methodName || '', trade.notes || '',
+        JSON.stringify(trade.tags || []), trade.result
       ]
     );
 
     res.status(201).json({
       success: true,
-      data: { id: result.insertId, ...trade, profit, profitPercent }
+      data: { id: result.insertId, ...trade }
     });
   } catch (error) {
+    console.error('创建交易失败:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -102,16 +113,26 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const trade = req.body;
-    const profit = calculateProfit(trade);
-    const profitPercent = calculateProfitPercent(trade);
+    // 使用用户手动输入的盈亏值，而不是计算值
+    const profit = trade.profit;
+
+    // 如果没有提供methodName，尝试从methods表中查询
+    let methodName = trade.methodName;
+    if (!methodName && trade.methodId) {
+      const [methodRows] = await pool.query('SELECT name FROM methods WHERE id = ?', [trade.methodId]);
+      if (methodRows.length > 0) {
+        methodName = methodRows[0].name;
+      }
+    }
 
     const [result] = await pool.query(
-      'UPDATE trades SET symbol = ?, direction = ?, entryPrice = ?, exitPrice = ?, entryTime = ?, exitTime = ?, lots = ?, profit = ?, profitPercent = ?, methodId = ?, methodName = ?, notes = ?, tags = ?, result = ?, riskRewardRatio = ? WHERE id = ?',
+      'UPDATE trades SET symbol = ?, direction = ?, entryPrice = ?, exitPrice = ?, entryTime = ?, exitTime = ?, lots = ?, profit = ?, expectedProfit = ?, methodId = ?, methodName = ?, notes = ?, tags = ?, result = ? WHERE id = ?',
       [
         trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice,
         trade.entryTime, trade.exitTime, trade.lots, profit,
-        profitPercent, trade.methodId, trade.methodName, trade.notes,
-        JSON.stringify(trade.tags || []), trade.result, trade.riskRewardRatio,
+        trade.expectedProfit || null,
+        trade.methodId, methodName || '', trade.notes || '',
+        JSON.stringify(trade.tags || []), trade.result,
         req.params.id
       ]
     );
@@ -119,7 +140,7 @@ router.put('/:id', async (req, res) => {
     if (result.affectedRows > 0) {
       res.json({
         success: true,
-        data: { id: req.params.id, ...trade, profit, profitPercent }
+        data: { id: req.params.id, ...trade }
       });
     } else {
       res.status(404).json({
@@ -128,6 +149,7 @@ router.put('/:id', async (req, res) => {
       });
     }
   } catch (error) {
+    console.error('更新交易失败:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

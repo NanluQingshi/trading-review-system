@@ -20,13 +20,12 @@ export interface Trade {
   exitTime: string;
   lots: number;
   profit: number;
-  profitPercent: number;
-  methodId: number;
+  expectedProfit?: number;
+  methodId: string;
   methodName: string;
   notes: string;
   tags: string[];
   result: 'win' | 'loss' | 'breakeven';
-  riskRewardRatio: number;
 }
 
 // 统计数据类型
@@ -57,7 +56,7 @@ export interface SymbolStat {
 }
 
 export interface MethodStat {
-  methodId: number;
+  methodId: string;
   methodName: string;
   count: number;
   wins: number;

@@ -50,13 +50,12 @@ async function initDB() {
       exitTime DATETIME NOT NULL,
       lots FLOAT NOT NULL,
       profit FLOAT NOT NULL,
-      profitPercent FLOAT NOT NULL,
+      expectedProfit FLOAT DEFAULT NULL,
       methodId VARCHAR(50),
       methodName VARCHAR(100),
       notes TEXT,
       tags JSON,
       result ENUM('win', 'loss', 'breakeven') NOT NULL,
-      riskRewardRatio FLOAT,
       FOREIGN KEY (methodId) REFERENCES methods(id) ON DELETE SET NULL
     )
   `);
@@ -85,12 +84,13 @@ async function initDB() {
       const mId = typeof trade.methodId === 'number' ? methods[trade.methodId - 1]?.id : trade.methodId;
       
       await connection.query(
-        'INSERT INTO trades (symbol, direction, entryPrice, exitPrice, entryTime, exitTime, lots, profit, profitPercent, methodId, methodName, notes, tags, result, riskRewardRatio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO trades (symbol, direction, entryPrice, exitPrice, entryTime, exitTime, lots, profit, expectedProfit, methodId, methodName, notes, tags, result) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice, 
           trade.entryTime, trade.exitTime, trade.lots, trade.profit, 
-          trade.profitPercent, mId, trade.methodName, trade.notes, 
-          JSON.stringify(trade.tags), trade.result, trade.riskRewardRatio
+          trade.expectedProfit || null, 
+          mId, trade.methodName, trade.notes, 
+          JSON.stringify(trade.tags), trade.result
         ]
       );
     }

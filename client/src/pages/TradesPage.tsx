@@ -41,6 +41,7 @@ const TradesPage: React.FC = () => {
   const [isRuleModalVisible, setIsRuleModalVisible] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [form] = Form.useForm();
+  const [confirmLoading, setConfirmLoading] = useState(false);
   
   const { Panel } = Collapse;
   
@@ -86,10 +87,14 @@ const TradesPage: React.FC = () => {
 
   const handleEdit = (trade: Trade) => {
     setEditingTrade(trade);
+    // 根据trade.methodId查找对应的methodName
+    // 注意：trade.methodId现在是string类型，与methods中的id类型一致
+    const selectedMethod = methods.find(m => m.id === trade.methodId);
     form.setFieldsValue({
       ...trade,
       entryTime: dayjs(trade.entryTime),
       exitTime: dayjs(trade.exitTime),
+      methodName: selectedMethod ? selectedMethod.name : trade.methodName,
     });
     setIsModalVisible(true);
   };
@@ -122,6 +127,8 @@ const TradesPage: React.FC = () => {
         exitTime: values.exitTime.format('YYYY-MM-DD HH:mm:ss'),
       };
 
+      setConfirmLoading(true);
+
       if (editingTrade) {
         await tradesApi.updateTrade(editingTrade.id, formattedValues);
         message.success('更新成功');
@@ -133,6 +140,8 @@ const TradesPage: React.FC = () => {
       fetchTrades();
     } catch (error) {
       console.error('Validate Failed:', error);
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -174,7 +183,7 @@ const TradesPage: React.FC = () => {
       ),
     },
     {
-      title: '盈亏',
+      title: '实际盈亏',
       dataIndex: 'profit',
       key: 'profit',
       sorter: (a: Trade, b: Trade) => a.profit - b.profit,
@@ -185,10 +194,19 @@ const TradesPage: React.FC = () => {
       ),
     },
     {
-      title: '盈亏比',
-      dataIndex: 'riskRewardRatio',
-      key: 'riskRewardRatio',
-      render: (ratio: number) => <Tag color="cyan">{ratio}R</Tag>,
+      title: '预期盈亏',
+      dataIndex: 'expectedProfit',
+      key: 'expectedProfit',
+      sorter: (a: Trade, b: Trade) => (a.expectedProfit || 0) - (b.expectedProfit || 0),
+      render: (expectedProfit: number | undefined) => (
+        expectedProfit !== undefined ? (
+          <Text style={{ color: expectedProfit > 0 ? '#52c41a' : expectedProfit < 0 ? '#f5222d' : '#8c8c8c' }}>
+            {expectedProfit > 0 ? `+${expectedProfit}` : expectedProfit}
+          </Text>
+        ) : (
+          '-'
+        )
+      ),
     },
     {
       title: '交易方法',
@@ -309,6 +327,8 @@ const TradesPage: React.FC = () => {
         width={800}
         okText="保存"
         cancelText="取消"
+        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden' }}
+        confirmLoading={confirmLoading}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 24 }}>
           <Row gutter={16}>
@@ -357,10 +377,17 @@ const TradesPage: React.FC = () => {
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="riskRewardRatio" label="盈亏比 (R)" rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} step={0.1} min={0} />
+              <Form.Item name="profit" label="实际盈亏" rules={[{ required: true }]}>
+                <InputNumber style={{ width: '100%' }} step={10} />
               </Form.Item>
             </Col>
+            <Col span={8}>
+              <Form.Item name="expectedProfit" label="预期盈亏">
+                <InputNumber style={{ width: '100%' }} step={10} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="result" label="交易结果" rules={[{ required: true }]}>
                 <Select>
@@ -372,9 +399,22 @@ const TradesPage: React.FC = () => {
             </Col>
           </Row>
           <Form.Item name="methodId" label="交易方法" rules={[{ required: true }]}>
-            <Select>
+            <Select
+              onChange={(value) => {
+                // 根据选择的methodId查找对应的methodName
+                // value是string类型，因为methods中的id是string类型
+                const selectedMethod = methods.find(m => m.id === value);
+                if (selectedMethod) {
+                  form.setFieldsValue({ methodName: selectedMethod.name });
+                }
+              }}
+            >
               {methods.map(m => <Option key={m.id} value={m.id}>{m.name}</Option>)}
             </Select>
+          </Form.Item>
+          {/* 隐藏的methodName字段，用于存储交易方法名称 */}
+          <Form.Item name="methodName" hidden>
+            <Input />
           </Form.Item>
           <Form.Item name="notes" label="交易笔记">
             <Input.TextArea rows={4} placeholder="记录您的入场逻辑、心理状态等..." />
@@ -399,7 +439,7 @@ const TradesPage: React.FC = () => {
           </Button>
         ]}
         width={800}
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', padding: '24px' }}
+        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden', padding: '24px' }}
       >
         <div>
           <Title level={5} style={{ marginTop: 0, marginBottom: 10 }}>计算规则说明</Title>
