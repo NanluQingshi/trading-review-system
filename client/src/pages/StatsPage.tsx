@@ -254,7 +254,7 @@ const StatsPage: React.FC = () => {
       {/* 图表区域 */}
       <Row gutter={16} style={{ marginBottom: 24 }}>
         {/* 盈亏曲线 */}
-        <Col xs={24} lg={16}>
+        <Col xs={24}>
           <Card title="累计盈亏曲线">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={profitCurve}>
@@ -265,31 +265,6 @@ const StatsPage: React.FC = () => {
                 <Legend />
                 <Line type="monotone" dataKey="cumulative" stroke="#8884d8" name="累计盈亏" strokeWidth={2} />
               </LineChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-
-        {/* 胜负分布 */}
-        <Col xs={24} lg={8}>
-          <Card title="交易结果分布">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={resultDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {resultDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
             </ResponsiveContainer>
           </Card>
         </Col>

@@ -94,7 +94,7 @@ router.get('/', async (req, res) => {
     const profitCurve = curveRows.map(row => {
       cumulativeProfit += row.profit;
       return {
-        date: row.date.toISOString().split('T')[0],
+        date: row.date ? row.date.toISOString().split('T')[0] : '',
         profit: row.profit,
         cumulative: cumulativeProfit
       };
