@@ -2,6 +2,11 @@
 echo "🚀 启动交易复盘统计系统..."
 echo ""
 
+# 初始化数据库
+echo "🔄 初始化数据库..."
+node server/scripts/init-db.js
+echo ""
+
 # 检查是否已安装依赖
 if [ ! -d "node_modules" ] || [ ! -d "server/node_modules" ] || [ ! -d "client/node_modules" ]; then
     echo "📦 检测到缺少依赖，正在安装..."

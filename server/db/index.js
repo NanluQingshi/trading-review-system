@@ -1,3 +1,10 @@
+/*
+ * @Author: NanluQingshi
+ * @Date: 2026-01-14 17:04:24
+ * @LastEditors: NanluQingshi
+ * @LastEditTime: 2026-01-18 00:59:44
+ * @Description: 
+ */
 const mysql = require('mysql2/promise');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
