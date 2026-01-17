@@ -91,11 +91,11 @@ router.post('/', async (req, res) => {
     const [result] = await pool.query(
       'INSERT INTO trades (symbol, direction, entryPrice, exitPrice, entryTime, exitTime, lots, profit, expectedProfit, methodId, methodName, notes, tags, result) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
-        trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice,
-        trade.entryTime, trade.exitTime, trade.lots, profit,
+        trade.symbol, trade.direction, trade.entryPrice || null, trade.exitPrice || null,
+        trade.entryTime, trade.exitTime, trade.lots || null, profit || null,
         trade.expectedProfit || null,
         trade.methodId, methodName || '', trade.notes || '',
-        JSON.stringify(trade.tags || []), trade.result
+        JSON.stringify(trade.tags || []), trade.result || null
       ]
     );
 
@@ -135,11 +135,11 @@ router.put('/:id', async (req, res) => {
     const [result] = await pool.query(
       'UPDATE trades SET symbol = ?, direction = ?, entryPrice = ?, exitPrice = ?, entryTime = ?, exitTime = ?, lots = ?, profit = ?, expectedProfit = ?, methodId = ?, methodName = ?, notes = ?, tags = ?, result = ? WHERE id = ?',
       [
-        trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice,
-        trade.entryTime, trade.exitTime, trade.lots, profit,
+        trade.symbol, trade.direction, trade.entryPrice || null, trade.exitPrice || null,
+        trade.entryTime, trade.exitTime, trade.lots || null, profit || null,
         trade.expectedProfit || null,
         trade.methodId, methodName || '', trade.notes || '',
-        JSON.stringify(trade.tags || []), trade.result,
+        JSON.stringify(trade.tags || []), trade.result || null,
         req.params.id
       ]
     );

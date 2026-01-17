@@ -123,8 +123,8 @@ const TradesPage: React.FC = () => {
       const values = await form.validateFields();
       const formattedValues = {
         ...values,
-        entryTime: values.entryTime.format('YYYY-MM-DD HH:mm:ss'),
-        exitTime: values.exitTime.format('YYYY-MM-DD HH:mm:ss'),
+        entryTime: values.entryTime ? values.entryTime.format('YYYY-MM-DD HH:mm:ss') : null,
+        exitTime: values.exitTime ? values.exitTime.format('YYYY-MM-DD HH:mm:ss') : null,
       };
 
       setConfirmLoading(true);
@@ -351,48 +351,48 @@ const TradesPage: React.FC = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="entryPrice" label="入场价格" rules={[{ required: true }]}>
+              <Form.Item name="entryPrice" label="入场价格">
                 <InputNumber style={{ width: '100%' }} step={0.0001} />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="exitPrice" label="出场价格" rules={[{ required: true }]}>
+              <Form.Item name="exitPrice" label="出场价格">
                 <InputNumber style={{ width: '100%' }} step={0.0001} />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="entryTime" label="入场时间" rules={[{ required: true }]}>
+              <Form.Item name="entryTime" label="入场时间">
                 <DatePicker showTime style={{ width: '100%' }} />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="exitTime" label="出场时间" rules={[{ required: true }]}>
+              <Form.Item name="exitTime" label="出场时间">
                 <DatePicker showTime style={{ width: '100%' }} />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={8}>
-              <Form.Item name="lots" label="手数" rules={[{ required: true }]}>
+              <Form.Item name="lots" label="手数">
                 <InputNumber style={{ width: '100%' }} step={0.01} min={0.01} />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="profit" label="实际盈亏" rules={[{ required: true }]}>
+              <Form.Item name="profit" label="实际盈亏">
                 <InputNumber style={{ width: '100%' }} step={10} />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="expectedProfit" label="预期盈亏" rules={[{ required: true }]}>
+              <Form.Item name="expectedProfit" label="预期盈亏">
                 <InputNumber style={{ width: '100%' }} step={10} />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={8}>
-              <Form.Item name="result" label="交易结果" rules={[{ required: true }]}>
+              <Form.Item name="result" label="交易结果">
                 <Select>
                   <Option value="win">盈利</Option>
                   <Option value="loss">亏损</Option>
