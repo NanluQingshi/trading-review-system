@@ -99,6 +99,9 @@ router.post('/', async (req, res) => {
       ]
     );
 
+    // 更新方法统计数据
+    await updateMethodStats(trade.methodId);
+
     res.status(201).json({
       success: true,
       data: { id: result.insertId, ...trade }
@@ -115,6 +118,10 @@ router.put('/:id', async (req, res) => {
     const trade = req.body;
     // 使用用户手动输入的盈亏值，而不是计算值
     const profit = trade.profit;
+
+    // 获取旧的交易记录，以便比较methodId是否改变
+    const [oldTradeResult] = await pool.query('SELECT methodId FROM trades WHERE id = ?', [req.params.id]);
+    const oldMethodId = oldTradeResult[0]?.methodId;
 
     // 如果没有提供methodName，尝试从methods表中查询
     let methodName = trade.methodName;
@@ -138,6 +145,12 @@ router.put('/:id', async (req, res) => {
     );
 
     if (result.affectedRows > 0) {
+      // 如果methodId改变了，需要更新两个方法的统计数据
+      if (oldMethodId !== trade.methodId) {
+        await updateMethodStats(oldMethodId);
+      }
+      await updateMethodStats(trade.methodId);
+
       res.json({
         success: true,
         data: { id: req.params.id, ...trade }
@@ -157,8 +170,15 @@ router.put('/:id', async (req, res) => {
 // 删除交易记录
 router.delete('/:id', async (req, res) => {
   try {
+    // 获取要删除的交易记录的methodId
+    const [tradeResult] = await pool.query('SELECT methodId FROM trades WHERE id = ?', [req.params.id]);
+    const methodId = tradeResult[0]?.methodId;
+    
     const [result] = await pool.query('DELETE FROM trades WHERE id = ?', [req.params.id]);
     if (result.affectedRows > 0) {
+      // 更新方法统计数据
+      await updateMethodStats(methodId);
+      
       res.json({
         success: true,
         message: '删除成功'
@@ -191,6 +211,45 @@ function calculateProfitPercent(trade) {
     ? ((exitPrice - entryPrice) / entryPrice) * 100
     : ((entryPrice - exitPrice) / entryPrice) * 100;
   return Math.round(percent * 100) / 100;
+}
+
+// 辅助函数：更新方法统计数据（使用次数和胜率）
+async function updateMethodStats(methodId) {
+  if (!methodId) return;
+  
+  try {
+    // 统计该方法的使用次数
+    const [usageResult] = await pool.query(
+      'SELECT COUNT(*) as count FROM trades WHERE methodId = ?', 
+      [methodId]
+    );
+    const usageCount = usageResult[0].count;
+    
+    // 统计该方法的胜率
+    const [winResult] = await pool.query(
+      'SELECT COUNT(*) as count FROM trades WHERE methodId = ? AND result = "win"', 
+      [methodId]
+    );
+    const winCount = winResult[0].count;
+    const winRate = usageCount > 0 ? Math.round((winCount / usageCount) * 100) / 100 : 0;
+    
+    // 统计总盈亏
+    const [pnlResult] = await pool.query(
+      'SELECT SUM(profit) as total FROM trades WHERE methodId = ?', 
+      [methodId]
+    );
+    const totalPnl = pnlResult[0].total || 0;
+    
+    // 更新方法的统计数据
+    await pool.query(
+      'UPDATE methods SET usage_count = ?, win_rate = ?, total_pnl = ? WHERE id = ?', 
+      [usageCount, winRate, totalPnl, methodId]
+    );
+    
+    console.log(`更新方法 ${methodId} 的统计数据：使用次数=${usageCount}，胜率=${winRate}，总盈亏=${totalPnl}`);
+  } catch (error) {
+    console.error('更新方法统计数据失败:', error);
+  }
 }
 
 module.exports = router;

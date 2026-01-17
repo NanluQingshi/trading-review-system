@@ -9,10 +9,17 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install"
   },
-  "keywords": ["trading", "review", "statistics"],
+  "keywords": [
+    "trading",
+    "review",
+    "statistics"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "axios": "^1.13.2"
   }
 }
