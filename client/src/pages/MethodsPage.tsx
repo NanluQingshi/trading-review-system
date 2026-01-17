@@ -26,8 +26,8 @@ import {
   ThunderboltOutlined,
   PercentageOutlined
 } from '@ant-design/icons';
-import { Method } from '../types';
 import { methodsApi } from '../services/api';
+import { Method } from '../types';
 
 const { Title, Text, Paragraph } = Typography;
 

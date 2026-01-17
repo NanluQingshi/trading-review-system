@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Table, message, Spin, Empty } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, TrophyOutlined, DollarOutlined } from '@ant-design/icons';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Stats } from '../types';
 import { statsApi } from '../services/api';
+import { Stats } from '../types';
 
 const StatsPage: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);

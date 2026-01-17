@@ -14,18 +14,18 @@ export interface Trade {
   id: number;
   symbol: string;
   direction: 'long' | 'short';
-  entryPrice: number;
-  exitPrice: number;
-  entryTime: string;
-  exitTime: string;
-  lots: number;
-  profit: number;
+  entryPrice?: number | null;
+  exitPrice?: number | null;
+  entryTime?: string | null;
+  exitTime?: string | null;
+  lots?: number;
+  profit?: number | null;
   expectedProfit?: number;
   methodId: string;
   methodName: string;
-  notes: string;
-  tags: string[];
-  result: 'win' | 'loss' | 'breakeven';
+  notes?: string;
+  tags?: string[];
+  result?: 'win' | 'loss' | 'breakeven';
 }
 
 // 统计数据类型
