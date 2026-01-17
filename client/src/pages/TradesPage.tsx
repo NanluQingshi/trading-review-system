@@ -277,7 +277,10 @@ const TradesPage: React.FC = () => {
             <Input placeholder="搜索品种" prefix={<SearchOutlined />} allowClear />
           </Form.Item>
           <Form.Item name="methodId">
-            <Select placeholder="选择方法" style={{ width: 150 }} allowClear>
+            <Select placeholder="选择方法" style={{ width: 220 }} allowClear showSearch filterOption={(input, option) => {
+              const optionLabel = typeof option?.children === 'string' ? option.children : '';
+              return optionLabel.toLowerCase().includes(input.toLowerCase());
+            }}>
               {methods.map(m => <Option key={m.id} value={m.id}>{m.name}</Option>)}
             </Select>
           </Form.Item>
@@ -382,7 +385,7 @@ const TradesPage: React.FC = () => {
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="expectedProfit" label="预期盈亏">
+              <Form.Item name="expectedProfit" label="预期盈亏" rules={[{ required: true }]}>
                 <InputNumber style={{ width: '100%' }} step={10} />
               </Form.Item>
             </Col>
@@ -400,6 +403,11 @@ const TradesPage: React.FC = () => {
           </Row>
           <Form.Item name="methodId" label="交易方法" rules={[{ required: true }]}>
             <Select
+              showSearch
+              filterOption={(input, option) => {
+                const optionLabel = typeof option?.children === 'string' ? option.children : '';
+                return optionLabel.toLowerCase().includes(input.toLowerCase());
+              }}
               onChange={(value) => {
                 // 根据选择的methodId查找对应的methodName
                 // value是string类型，因为methods中的id是string类型
