@@ -1,5 +1,11 @@
+/*
+ * @Author: NanluQingshi
+ * @Date: 2026-01-17 18:29:03
+ * @LastEditors: NanluQingshi
+ * @LastEditTime: 2026-01-18 00:55:31
+ * @Description: 初始化数据库，创建数据库和表结构
+ */
 const mysql = require('mysql2/promise');
-const { methods, trades } = require('./data/mockData');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
@@ -61,40 +67,6 @@ async function initDB() {
   `);
 
   console.log('表结构已创建');
-
-  // 导入初始数据 (如果表为空)
-  const [methodRows] = await connection.query('SELECT COUNT(*) as count FROM methods');
-  if (methodRows[0].count === 0) {
-    console.log('正在导入初始方法数据...');
-    for (const method of methods) {
-      await connection.query(
-        'INSERT INTO methods (id, code, name, description, is_default, usage_count, win_rate, total_pnl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [method.id, method.code, method.name, method.description, method.is_default, method.usage_count, method.win_rate, method.total_pnl]
-      );
-    }
-  }
-
-  const [tradeRows] = await connection.query('SELECT COUNT(*) as count FROM trades');
-  if (tradeRows[0].count === 0) {
-    console.log('正在导入初始交易数据...');
-    for (const trade of trades) {
-      // 模拟数据中的 methodId 是数字，但 methods 表中的 id 是 UUID 字符串
-      // 这里需要处理一下，或者在实际应用中统一
-      // 为了演示，我们先简单处理
-      const mId = typeof trade.methodId === 'number' ? methods[trade.methodId - 1]?.id : trade.methodId;
-      
-      await connection.query(
-        'INSERT INTO trades (symbol, direction, entryPrice, exitPrice, entryTime, exitTime, lots, profit, expectedProfit, methodId, methodName, notes, tags, result) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-          trade.symbol, trade.direction, trade.entryPrice, trade.exitPrice, 
-          trade.entryTime, trade.exitTime, trade.lots, trade.profit, 
-          trade.expectedProfit || null, 
-          mId, trade.methodName, trade.notes, 
-          JSON.stringify(trade.tags), trade.result
-        ]
-      );
-    }
-  }
 
   console.log('数据库初始化完成！');
   await connection.end();
