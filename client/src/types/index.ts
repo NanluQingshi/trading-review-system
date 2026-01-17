@@ -41,6 +41,8 @@ export interface Stats {
     avgWin: number;
     avgLoss: number;
     profitFactor: number;
+    totalExpectedProfit: number;
+    avgExpectedProfit: number;
   };
   symbolStats: SymbolStat[];
   methodStats: MethodStat[];
@@ -52,6 +54,7 @@ export interface SymbolStat {
   count: number;
   wins: number;
   profit: number;
+  expectedProfit: number;
   winRate: string;
 }
 
@@ -61,6 +64,7 @@ export interface MethodStat {
   count: number;
   wins: number;
   profit: number;
+  expectedProfit: number;
   winRate: string;
 }
 

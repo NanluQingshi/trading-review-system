@@ -31,7 +31,9 @@ router.get('/', async (req, res) => {
         AVG(CASE WHEN result = 'win' THEN profit ELSE NULL END) as avgWin,
         AVG(CASE WHEN result = 'loss' THEN ABS(profit) ELSE NULL END) as avgLoss,
         SUM(CASE WHEN result = 'win' THEN profit ELSE 0 END) as totalWinProfit,
-        SUM(CASE WHEN result = 'loss' THEN ABS(profit) ELSE 0 END) as totalLossProfit
+        SUM(CASE WHEN result = 'loss' THEN ABS(profit) ELSE 0 END) as totalLossProfit,
+        SUM(expectedProfit) as totalExpectedProfit,
+        AVG(expectedProfit) as avgExpectedProfit
       FROM trades
       ${whereClause}
     `, params);
@@ -46,7 +48,8 @@ router.get('/', async (req, res) => {
         symbol,
         COUNT(*) as count,
         SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) as wins,
-        SUM(profit) as profit
+        SUM(profit) as profit,
+        SUM(expectedProfit) as expectedProfit
       FROM trades
       ${whereClause}
       GROUP BY symbol
@@ -64,7 +67,8 @@ router.get('/', async (req, res) => {
         methodName,
         COUNT(*) as count,
         SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) as wins,
-        SUM(profit) as profit
+        SUM(profit) as profit,
+        SUM(expectedProfit) as expectedProfit
       FROM trades
       ${whereClause}
       GROUP BY methodId, methodName
@@ -109,7 +113,9 @@ router.get('/', async (req, res) => {
           avgProfit: parseFloat(overview.avgProfit || 0).toFixed(2),
           avgWin: parseFloat(overview.avgWin || 0).toFixed(2),
           avgLoss: parseFloat(overview.avgLoss || 0).toFixed(2),
-          profitFactor: parseFloat(profitFactor)
+          profitFactor: parseFloat(profitFactor),
+          totalExpectedProfit: overview.totalExpectedProfit || 0,
+          avgExpectedProfit: parseFloat(overview.avgExpectedProfit || 0).toFixed(2)
         },
         symbolStats,
         methodStats,

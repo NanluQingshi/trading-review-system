@@ -80,6 +80,16 @@ const StatsPage: React.FC = () => {
         </span>
       ),
     },
+    {
+      title: '总预期盈亏',
+      dataIndex: 'expectedProfit',
+      key: 'expectedProfit',
+      render: (expectedProfit: number) => (
+        <span className={expectedProfit > 0 ? 'profit-positive' : expectedProfit < 0 ? 'profit-negative' : 'profit-neutral'}>
+          {expectedProfit > 0 ? '+' : ''}{expectedProfit}
+        </span>
+      ),
+    },
   ];
 
   // 方法表格列
@@ -112,6 +122,16 @@ const StatsPage: React.FC = () => {
       render: (profit: number) => (
         <span className={profit > 0 ? 'profit-positive' : profit < 0 ? 'profit-negative' : 'profit-neutral'}>
           {profit > 0 ? '+' : ''}{profit}
+        </span>
+      ),
+    },
+    {
+      title: '总预期盈亏',
+      dataIndex: 'expectedProfit',
+      key: 'expectedProfit',
+      render: (expectedProfit: number) => (
+        <span className={expectedProfit > 0 ? 'profit-positive' : expectedProfit < 0 ? 'profit-negative' : 'profit-neutral'}>
+          {expectedProfit > 0 ? '+' : ''}{expectedProfit}
         </span>
       ),
     },
@@ -162,6 +182,28 @@ const StatsPage: React.FC = () => {
               value={overview.profitFactor}
               precision={2}
               styles={{ content: { color: overview.profitFactor >= 1 ? '#3f8600' : '#cf1322' } }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="总预期盈亏"
+              value={overview.totalExpectedProfit}
+              precision={2}
+              styles={{ content: { color: overview.totalExpectedProfit >= 0 ? '#3f8600' : '#cf1322' } }}
+              prefix={<DollarOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="平均预期盈亏"
+              value={overview.avgExpectedProfit}
+              precision={2}
+              styles={{ content: { color: overview.avgExpectedProfit >= 0 ? '#3f8600' : '#cf1322' } }}
+              prefix={<DollarOutlined />}
             />
           </Card>
         </Col>
@@ -255,7 +297,7 @@ const StatsPage: React.FC = () => {
 
       {/* 货币对统计 */}
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col xs={24} lg={12}>
+        <Col xs={24}>
           <Card title="货币对统计">
             <Table
               columns={symbolColumns}
@@ -266,9 +308,11 @@ const StatsPage: React.FC = () => {
             />
           </Card>
         </Col>
+      </Row>
 
-        {/* 方法统计 */}
-        <Col xs={24} lg={12}>
+      {/* 方法统计 */}
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
           <Card title="方法统计">
             <Table
               columns={methodColumns}
