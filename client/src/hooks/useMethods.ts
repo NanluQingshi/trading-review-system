@@ -2,13 +2,13 @@
  * @Author: NanluQingshi
  * @Date: 2026-01-18 01:10:59
  * @LastEditors: NanluQingshi
- * @LastEditTime: 2026-01-18 01:14:53
- * @Description: 
+ * @LastEditTime: 2026-01-18 01:44:03
+ * @Description: 交易方法库hooks
  */
-import { useState, useEffect } from 'react';
-import { Method } from '../types';
-import { methodsApi } from '../services/api';
-import { message } from 'antd';
+import { useState, useEffect } from "react";
+import { Method } from "../types";
+import { methodsApi } from "../services/api";
+import { message } from "antd";
 
 export const useMethods = () => {
   const [methods, setMethods] = useState<Method[]>([]);
@@ -21,9 +21,47 @@ export const useMethods = () => {
       const response = await methodsApi.getMethods();
       setMethods(response.data.data);
     } catch (error) {
-      message.error('获取方法库失败');
+      message.error("获取方法库失败");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 创建交易方法
+  const createMethod = async (methodData: Partial<Method>) => {
+    try {
+      const response = await methodsApi.createMethod(methodData);
+      message.success("创建成功");
+      fetchMethods();
+      return response.data.data;
+    } catch (error) {
+      message.error("创建失败");
+      throw error;
+    }
+  };
+
+  // 更新交易方法
+  const updateMethod = async (id: string, methodData: Partial<Method>) => {
+    try {
+      const response = await methodsApi.updateMethod(id, methodData);
+      message.success("更新成功");
+      fetchMethods();
+      return response.data.data;
+    } catch (error) {
+      message.error("更新失败");
+      throw error;
+    }
+  };
+
+  // 删除交易方法
+  const deleteMethod = async (id: string) => {
+    try {
+      await methodsApi.deleteMethod(id);
+      message.success("删除成功");
+      fetchMethods();
+    } catch (error) {
+      message.error("删除失败");
+      throw error;
     }
   };
 
@@ -35,6 +73,9 @@ export const useMethods = () => {
   return {
     methods,
     loading,
-    fetchMethods
+    fetchMethods,
+    createMethod,
+    updateMethod,
+    deleteMethod,
   };
 };
