@@ -25,7 +25,8 @@ import {
   EditOutlined, 
   DeleteOutlined, 
   SearchOutlined,
-  InfoCircleOutlined} from '@ant-design/icons';
+  InfoCircleOutlined,
+  CopyOutlined} from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { Trade, Method } from '../types';
 import { tradesApi, methodsApi } from '../services/api';
@@ -116,6 +117,31 @@ const TradesPage: React.FC = () => {
         }
       },
     });
+  };
+
+  const handleCopy = (record: Trade) => {
+    // 只复制三个必填字段
+    form.setFieldsValue({
+      symbol: record.symbol,
+      direction: record.direction,
+      methodId: record.methodId,
+      methodName: record.methodName,
+      // 其他字段清空或保持默认值
+      entryPrice: undefined,
+      exitPrice: undefined,
+      entryTime: undefined,
+      exitTime: undefined,
+      lots: undefined,
+      profit: undefined,
+      expectedProfit: undefined,
+      result: undefined,
+      notes: undefined,
+      tags: [],
+    });
+    // 打开模态框
+    setEditingTrade(null);
+    setIsModalVisible(true);
+    message.success('已复制交易记录');
   };
 
   const handleModalOk = async () => {
@@ -246,6 +272,9 @@ const TradesPage: React.FC = () => {
         <Space size="middle">
           <Tooltip title="编辑">
             <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          </Tooltip>
+          <Tooltip title="复制">
+            <Button type="text" icon={<CopyOutlined />} onClick={() => handleCopy(record)} />
           </Tooltip>
           <Tooltip title="删除">
             <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />

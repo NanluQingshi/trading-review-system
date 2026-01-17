@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
       params.push(endDate);
     }
 
-    query += ' ORDER BY entryTime DESC';
+    query += ' ORDER BY update_time DESC';
 
     const [rows] = await pool.query(query, params);
     
