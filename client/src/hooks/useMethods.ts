@@ -2,13 +2,13 @@
  * @Author: NanluQingshi
  * @Date: 2026-01-18 01:10:59
  * @LastEditors: NanluQingshi
- * @LastEditTime: 2026-01-18 01:44:03
+ * @LastEditTime: 2026-01-18 01:55:38
  * @Description: 交易方法库hooks
  */
 import { useState, useEffect } from "react";
-import { Method } from "../types";
-import { methodsApi } from "../services/api";
 import { message } from "antd";
+import { methodsApi } from "../services/api";
+import { Method } from "../types";
 
 export const useMethods = () => {
   const [methods, setMethods] = useState<Method[]>([]);
